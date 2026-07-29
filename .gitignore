@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.splunk
+.env.*.local
+*.secrets
+secrets/mqAppPassword.txt
+secrets/mqAdminPassword.txt
+.DS_Store
+mq-otel-exporter/upstream.Dockerfile
