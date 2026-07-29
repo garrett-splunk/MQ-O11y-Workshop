@@ -1,40 +1,42 @@
-# IBM MQ → Splunk O11y — Facilitator Guide
+# IBM MQ → Splunk O11y — Facilitator Guide (metrics track)
 
-**Participant site:** https://garrett-splunk.github.io/MQ-O11y-Workshop/ (GitHub Pages) or http://localhost:8091 (with local stack)
+**Participant site:** https://garrett-splunk.github.io/MQ-O11y-Workshop/
 
 **Lab root:** `~/projects/ibm-mq-o11y-lab`
 
+This session focuses on **IBM MQ infrastructure metrics** via `mq_otel` → OpenTelemetry Collector → Splunk **Metrics** (not APM/traces/logging in the lab narrative).
+
 ---
 
-## Timing (~60–75 min)
+## Timing (~45–60 min)
 
 | Block | Duration | Section |
 |-------|----------|---------|
-| Intro + concepts | 10 min | Overview, Concepts 101 |
-| Start + topology | 15 min | Steps 1–3 |
-| Message flow + logs | 15 min | Steps 4–5 |
-| MQ metrics + tracing | 20 min | Steps 6–7 |
-| Failure demo + Q&A | 10 min | Step 8, teardown |
+| Intro + concepts | 10 min | Overview, Concepts |
+| Token + secrets + start | 20 min | Steps 1–4 |
+| Verify + traffic | 15 min | Steps 5–7 |
+| Metrics in Splunk + failure demo | 15 min | Steps 8–9 |
+| Wrap-up | 5 min | Teardown |
 
 ---
 
 ## Pre-workshop checklist
 
-- [ ] Docker Desktop running (8 GB RAM recommended for IBM MQ + builds)
-- [ ] Splunk O11y **ingest** token in `.env.splunk`
+- [ ] Docker Desktop running (8 GB RAM recommended)
+- [ ] Participants cloned repo and have ingest token ready
+- [ ] `cp .env.splunk.example .env.splunk` + token pasted
 - [ ] `cp secrets/mqAppPassword.example.txt secrets/mqAppPassword.txt`
-- [ ] `docker compose up --build -d` verified with `bash scripts/verify-stack.sh`
-- [ ] Splunk UI: APM environment filter **`ibm-mq-lab`** ready
+- [ ] Facilitator: `bash scripts/verify-stack.sh` passes
 
 ---
 
 ## Facilitator demo script
 
-1. **Start stack** — Step 2; show MQ console at https://localhost:9443/ibmmq/console
-2. **Business flow** — POST `/orders`; tail consumer logs
-3. **Metrics** — Splunk Metrics: search `ibmmq` / queue depth for `ORDER.REQ`
-4. **Traces** — APM service map: `order-producer` → `order-consumer`; mention MQ native spans when tracing exit active
-5. **Failure** — `docker compose stop order-consumer`; `npm run load-traffic`; show depth + 503s; restart consumer
+1. Walk through **Step 2** (token in `.env.splunk`) live.
+2. **Step 4–5** — `docker compose up --build -d`, then verify script line by line.
+3. **Step 7** — `npm run load-traffic -- 30 400`.
+4. **Step 8** — Splunk Metrics: filter `metric_name:ibmmq*` or search queue depth for `ORDER.REQ`, environment `ibm-mq-lab`.
+5. **Step 9** — stop consumer, load traffic, show depth spike, restart consumer.
 
 ---
 
@@ -42,18 +44,13 @@
 
 ```bash
 cd ~/projects/ibm-mq-o11y-lab
+cp .env.example .env
+cp .env.splunk.example .env.splunk
+cp secrets/mqAppPassword.example.txt secrets/mqAppPassword.txt
 docker compose up --build -d
 bash scripts/verify-stack.sh
 npm run load-traffic -- 30 400
-docker compose stop order-consumer && npm run load-traffic -- 20 200
+docker compose stop order-consumer && npm run load-traffic -- 25 200
 docker compose start order-consumer
 docker compose down -v
 ```
-
----
-
-## Key talking points
-
-- **Three telemetry paths:** app OTLP (traces/logs), `mq_otel` (infrastructure metrics), MQ tracing exit (PUT/GET spans).
-- **Environment tag:** `deployment.environment:ibm-mq-lab` on all signals.
-- **MQ license:** `LICENSE=accept` is for IBM MQ developer/education use only.

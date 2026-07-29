@@ -1,6 +1,6 @@
 # IBM MQ → Splunk Observability Cloud Lab
 
-Hands-on workshop stack: IBM MQ queue manager, Node.js producer/consumer apps, **mq_otel** infrastructure metrics, MQ OpenTelemetry tracing exit, and OpenTelemetry export to **Splunk Observability Cloud**.
+Hands-on workshop stack: IBM MQ queue manager, **`mq_otel` infrastructure metrics** → OpenTelemetry Collector → Splunk **Metrics**. Sample apps generate message traffic so queue depth changes.
 
 ## Quick start
 
