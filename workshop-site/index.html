@@ -104,7 +104,7 @@ git clone https://github.com/garrett-splunk/MQ-O11y-Workshop.git .   # if empty 
 cp .env.example .env
 cp .env.splunk.example .env.splunk
 cp secrets/mqAppPassword.example.txt secrets/mqAppPassword.txt
-# Edit .env.splunk — paste ingest token (Step 2)
+# Edit .env.splunk — paste ingest token (Step 2; nano or vi)
 
 docker compose up --build -d
 bash scripts/verify-stack.sh
@@ -135,7 +135,7 @@ docker compose start order-consumer</code></pre>
           <li><strong>Docker Desktop</strong> running (8 GB+ RAM recommended; Apple Silicon uses <code>linux/amd64</code> for MQ images)</li>
           <li><strong>Node.js 20+</strong> and npm (for <code>npm run load-traffic</code>)</li>
           <li><strong>Git</strong> to clone <a href="https://github.com/garrett-splunk/MQ-O11y-Workshop">MQ-O11y-Workshop</a></li>
-          <li><strong>Splunk Observability Cloud</strong> access with permission to create an <strong>ingest</strong> token</li>
+          <li><strong>Splunk Observability Cloud</strong> access — <em>or</em> an ingest token supplied by your facilitator (see Step 2)</li>
           <li>Accept IBM MQ developer license (<code>LICENSE=accept</code> in Compose — education/dev only)</li>
         </ul>
         <h3>Clone the lab (once)</h3>
@@ -153,6 +153,11 @@ git clone https://github.com/garrett-splunk/MQ-O11y-Workshop.git .</code></pre>
         <h2>Splunk ingest token (<code>.env.splunk</code>)</h2>
         <p>Only the OpenTelemetry Collector reads this file. It forwards <strong>metrics</strong> to Splunk using your token and realm URLs.</p>
 
+        <div class="callout callout--info">
+          <p class="callout__title">Workshop token</p>
+          <p>In a live session, your facilitator may give you an <strong>ingest token</strong> and realm (for example <code>us1</code>) on a slide or in chat. Use that value in Step 2c — you do not need to create your own token unless you are self-paced.</p>
+        </div>
+
         <h3>2a — Create the file from the template</h3>
         <div class="code-block">
           <div class="code-block__header"><span>Terminal (repo root)</span><button class="btn-copy" data-copy="cmd-splunk-cp">Copy</button></div>
@@ -160,7 +165,9 @@ git clone https://github.com/garrett-splunk/MQ-O11y-Workshop.git .</code></pre>
 cp .env.splunk.example .env.splunk</code></pre>
         </div>
 
-        <h3>2b — Get an ingest token in Splunk O11y</h3>
+        <h3>2b — Get the token value</h3>
+        <p><strong>Option A — Facilitator-led workshop:</strong> Copy the ingest token from the workshop materials. Note the realm and ingest URLs if the facilitator lists them (often US1).</p>
+        <p><strong>Option B — Self-paced:</strong> Create your own token in Splunk O11y:</p>
         <ol>
           <li>Sign in to <strong>Splunk Observability Cloud</strong> (note your realm, e.g. <code>us1</code> in the URL).</li>
           <li>Open <strong>Organization Settings</strong> (gear) → <strong>Access Tokens</strong>.</li>
@@ -168,8 +175,38 @@ cp .env.splunk.example .env.splunk</code></pre>
           <li>Copy the token value once; you will not see it again.</li>
         </ol>
 
-        <h3>2c — Paste the token and fix the realm</h3>
-        <p>Open <code>.env.splunk</code> in your editor. Update these lines (example for US1):</p>
+        <h3>2c — Edit <code>.env.splunk</code> on the command line</h3>
+        <p>From the repo root, open the file in a terminal editor. Pick <strong>nano</strong> (easiest) or <strong>vi</strong>.</p>
+
+        <h4>Using nano (recommended for beginners)</h4>
+        <ol class="checklist">
+          <li>Run: <code>nano .env.splunk</code></li>
+          <li>Use the arrow keys to move to the line <code>SPLUNK_ACCESS_TOKEN=your-ingest-token-here</code>.</li>
+          <li>Delete <code>your-ingest-token-here</code> and paste the workshop (or your own) ingest token immediately after the <code>=</code> with no spaces.</li>
+          <li>If the facilitator gave a realm, set <code>SPLUNK_REALM</code> and the three URLs to match (see example below). For US1, the template is usually correct except for the token.</li>
+          <li>Save: press <kbd>Ctrl</kbd>+<kbd>O</kbd>, then <kbd>Enter</kbd>. Exit: <kbd>Ctrl</kbd>+<kbd>X</kbd>.</li>
+        </ol>
+        <div class="code-block">
+          <div class="code-block__header"><span>Open with nano</span><button class="btn-copy" data-copy="cmd-splunk-nano">Copy</button></div>
+          <pre><code id="cmd-splunk-nano">cd ~/projects/ibm-mq-o11y-lab
+nano .env.splunk</code></pre>
+        </div>
+
+        <h4>Using vi (vim)</h4>
+        <ol class="checklist">
+          <li>Run: <code>vi .env.splunk</code></li>
+          <li>Press <kbd>i</kbd> to enter insert mode.</li>
+          <li>Move to the token line and replace the placeholder with your ingest token.</li>
+          <li>Update realm URLs if needed, then press <kbd>Esc</kbd>.</li>
+          <li>Type <code>:wq</code> and press <kbd>Enter</kbd> to save and quit. (To exit without saving: <kbd>Esc</kbd> then <code>:q!</code>)</li>
+        </ol>
+        <div class="code-block">
+          <div class="code-block__header"><span>Open with vi</span><button class="btn-copy" data-copy="cmd-splunk-vi">Copy</button></div>
+          <pre><code id="cmd-splunk-vi">cd ~/projects/ibm-mq-o11y-lab
+vi .env.splunk</code></pre>
+        </div>
+
+        <h4>What the file should look like (US1 example)</h4>
         <div class="code-block">
           <pre><code>SPLUNK_REALM=us1
 SPLUNK_ACCESS_TOKEN=paste-your-ingest-token-here
@@ -179,7 +216,7 @@ SPLUNK_LOG_INGEST_URL=https://ingest.us1.signalfx.com/v1/log</code></pre>
         </div>
         <div class="callout callout--warning">
           <p class="callout__title">Realm must match</p>
-          <p>If your org is EU0, use <code>ingest.eu0.signalfx.com</code> and <code>api.eu0.signalfx.com</code>. Never commit <code>.env.splunk</code> to git.</p>
+          <p>If your org is EU0, use <code>ingest.eu0.signalfx.com</code> and <code>api.eu0.signalfx.com</code>. Never commit <code>.env.splunk</code> to git. Do not share your screen while the token line is visible.</p>
         </div>
 
         <h3>2d — Confirm the file exists (do not print the token)</h3>
@@ -218,7 +255,7 @@ docker compose up --build -d</code></pre>
           <pre><code id="cmd-4b">docker compose ps</code></pre>
         </div>
         <p class="muted">Expect <code>mq</code> healthy, then <code>mq-otel-exporter</code>, <code>otel-collector</code>, <code>order-producer</code>, and <code>order-consumer</code> running.</p>
-        <p>If you edited <code>.env.splunk</code> after the stack was already up:</p>
+        <p>If you edited <code>.env.splunk</code> after the stack was already up (same editors as Step 2: <code>nano .env.splunk</code> or <code>vi .env.splunk</code>), reload the collector:</p>
         <div class="code-block">
           <pre><code>docker compose up -d otel-collector</code></pre>
         </div>
