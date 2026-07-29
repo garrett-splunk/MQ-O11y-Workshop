@@ -15,7 +15,7 @@ docker compose up --build -d
 bash scripts/verify-stack.sh
 ```
 
-Open the guided workshop at **https://garrett-splunk.github.io/MQ-O11y-Workshop/** (or **http://localhost:8091** with the stack running).
+Open the guided workshop at **https://garrett-splunk.github.io/MQ-O11y-Workshop/** (GitHub Pages from the `gh-pages` branch) or **http://localhost:8091** with the stack running.
 
 | URL | Purpose |
 |-----|---------|

@@ -8,30 +8,25 @@ on:
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
+# Publishes workshop-site/ to the gh-pages branch (classic GitHub Pages source).
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Publish workshop site to gh-pages branch
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          path: workshop-site
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          folder: workshop-site
+          branch: gh-pages
+          clean: true
+          commit-message: "Deploy workshop site from main"
