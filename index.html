@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto" data-theme-mode="auto">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IBM MQ Workshop — Splunk Observability Cloud</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="#overview">
+        <span class="brand__mark">splunk&gt;</span>
+        <span class="brand__tag">ibm mq lab</span>
+      </a>
+      <div class="header-actions">
+        <a class="header-doc-link" href="https://help.splunk.com/en/splunk-observability-cloud" target="_blank" rel="noopener">Splunk O11y docs</a>
+        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="4"/></svg>
+          <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="progress" aria-hidden="true"><div class="progress__bar" id="progressBar"></div></div>
+
+  <div class="page">
+    <aside class="sidebar" aria-label="Lab steps">
+      <p class="sidebar__sub">Workshop</p>
+      <p class="sidebar__hint">Follow each step in order. ~60–75 minutes hands-on.</p>
+      <ul class="sidebar-tree">
+        <li><a href="#overview" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">—</span> Overview</a></li>
+        <li><a href="#concepts" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">—</span> Concepts 101</a></li>
+        <li><a href="#commands" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">—</span> All commands</a></li>
+        <li><a href="#prereqs" class="sidebar-tree__link" data-step="1"><span class="sidebar-tree__num">1</span> Prerequisites</a></li>
+        <li><a href="#step-start" class="sidebar-tree__link" data-step="2"><span class="sidebar-tree__num">2</span> Start platform</a></li>
+        <li><a href="#step-topology" class="sidebar-tree__link" data-step="3"><span class="sidebar-tree__num">3</span> MQ topology</a></li>
+        <li><a href="#step-flow" class="sidebar-tree__link" data-step="4"><span class="sidebar-tree__num">4</span> Message flow</a></li>
+        <li><a href="#step-logging" class="sidebar-tree__link" data-step="5"><span class="sidebar-tree__num">5</span> Structured logging</a></li>
+        <li><a href="#step-metrics" class="sidebar-tree__link" data-step="6"><span class="sidebar-tree__num">6</span> MQ metrics</a></li>
+        <li><a href="#step-tracing" class="sidebar-tree__link" data-step="7"><span class="sidebar-tree__num">7</span> MQ tracing + APM</a></li>
+        <li><a href="#step-failure" class="sidebar-tree__link" data-step="8"><span class="sidebar-tree__num">8</span> Failure demo</a></li>
+        <li><a href="#troubleshoot" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">?</span> Troubleshooting</a></li>
+        <li><a href="#wrapup" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">—</span> Teardown</a></li>
+      </ul>
+      <div class="sidebar-footer">
+        <a href="WORKSHOP_GUIDE.md">Facilitator guide</a>
+      </div>
+    </aside>
+
+    <main class="prose" id="content">
+      <header class="hero" id="overview">
+        <p class="eyebrow">Hands-on lab · IBM MQ · Splunk Observability Cloud</p>
+        <h1>IBM MQ → Splunk Observability Cloud</h1>
+        <p class="lead">
+          Run a local IBM MQ queue manager with Node.js producer and consumer apps, export
+          <strong>MQ infrastructure metrics</strong> via <code>mq_otel</code>, enable the
+          <strong>MQ OpenTelemetry tracing exit</strong>, and send application traces and logs through the
+          OpenTelemetry Collector into <strong>Splunk Observability Cloud</strong> (APM, Metrics, Log Observer).
+        </p>
+        <div class="callout callout--info">
+          <p class="callout__title">Workshop URLs</p>
+          <p><strong>GitHub Pages:</strong> <a href="https://garrett-splunk.github.io/MQ-O11y-Workshop/">garrett-splunk.github.io/MQ-O11y-Workshop</a> · <strong>Local lab:</strong> <a href="http://localhost:8091">localhost:8091</a></p>
+        </div>
+      </header>
+
+      <section id="concepts">
+        <h2>Concepts 101 — MQ and O11y</h2>
+        <table class="info-table">
+          <thead><tr><th>IBM MQ concept</th><th>Splunk O11y signal</th><th>In this lab</th></tr></thead>
+          <tbody>
+            <tr><td>Queue depth</td><td>Metric (Gauge)</td><td><code>mq_otel</code> → Metrics</td></tr>
+            <tr><td>PUT / GET</td><td>Trace span</td><td>MQ tracing exit + app spans</td></tr>
+            <tr><td>Order message</td><td>End-to-end trace</td><td>producer → MQ → consumer</td></tr>
+            <tr><td>JSON app logs</td><td>Log Observer</td><td><code>severityText</code>, <code>trace_id</code></td></tr>
+            <tr><td>Environment</td><td>APM filter</td><td><code>ibm-mq-lab</code></td></tr>
+          </tbody>
+        </table>
+        <div class="flow-diagram" role="img" aria-label="Data flow">
+          <div class="flow-node"><div class="flow-title">order-producer</div><div class="flow-sub">HTTP + MQ PUT</div></div>
+          <div class="flow-arrow"><span>→</span></div>
+          <div class="flow-node flow-node-accent"><div class="flow-title">IBM MQ QM1</div><div class="flow-sub">ORDER.REQ queue</div></div>
+          <div class="flow-arrow"><span>→</span></div>
+          <div class="flow-node"><div class="flow-title">order-consumer</div><div class="flow-sub">MQ GET loop</div></div>
+          <div class="flow-arrow"><span>→</span></div>
+          <div class="flow-node"><div class="flow-title">OTel Collector</div><div class="flow-sub">4317 / 4318</div></div>
+          <div class="flow-arrow"><span>→</span></div>
+          <div class="flow-node"><div class="flow-title">Splunk O11y</div><div class="flow-sub">APM · Metrics · Logs</div></div>
+        </div>
+        <table class="info-table">
+          <tr><th>Workshop</th><td><a href="http://localhost:8091">http://localhost:8091</a></td></tr>
+          <tr><th>Producer API</th><td><a href="http://localhost:8080/health">http://localhost:8080</a></td></tr>
+          <tr><th>MQ console</th><td><a href="https://localhost:9443/ibmmq/console">https://localhost:9443/ibmmq/console</a> (<code>admin</code>)</td></tr>
+          <tr><th>APM environment</th><td><code>ibm-mq-lab</code></td></tr>
+          <tr><th>Request queue</th><td><code>ORDER.REQ</code></td></tr>
+        </table>
+      </section>
+
+      <section id="commands">
+        <h2>All commands (cheat sheet)</h2>
+        <div class="code-block">
+          <div class="code-block__header"><span>Start</span><button class="btn-copy" data-copy="cmd-start">Copy</button></div>
+          <pre><code id="cmd-start">cd ~/projects/ibm-mq-o11y-lab
+cp .env.example .env
+cp .env.splunk.example .env.splunk
+cp secrets/mqAppPassword.example.txt secrets/mqAppPassword.txt
+docker compose up --build -d
+bash scripts/verify-stack.sh</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-block__header"><span>Traffic</span><button class="btn-copy" data-copy="cmd-traffic">Copy</button></div>
+          <pre><code id="cmd-traffic">curl -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -H "X-Correlation-Id: demo-1" \
+  -d '{"productId":"SKU-100","quantity":2}'
+
+npm install
+npm run load-traffic -- 30 400</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-block__header"><span>Failure demo</span><button class="btn-copy" data-copy="cmd-fail">Copy</button></div>
+          <pre><code id="cmd-fail">docker compose stop order-consumer
+npm run load-traffic -- 25 200
+docker compose start order-consumer</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-block__header"><span>Teardown</span><button class="btn-copy" data-copy="cmd-down">Copy</button></div>
+          <pre><code id="cmd-down">docker compose down -v</code></pre>
+        </div>
+      </section>
+
+      <section id="prereqs">
+        <div class="step-meta"><span class="step-badge">Step 1</span><span class="step-time">~5 min</span></div>
+        <h2>Prerequisites</h2>
+        <ul class="checklist">
+          <li><strong>Docker Desktop</strong> (8 GB+ RAM recommended)</li>
+          <li><strong>Node.js 20+</strong> for <code>npm run load-traffic</code></li>
+          <li><strong>Splunk Observability Cloud</strong> ingest token in <code>.env.splunk</code></li>
+          <li>Accept IBM MQ license via <code>LICENSE=accept</code> (developer/education)</li>
+          <li>Copy <code>secrets/mqAppPassword.txt</code> for the <code>mq_otel</code> exporter</li>
+        </ul>
+        <p class="muted">Ports: <code>1414</code> MQ, <code>9443</code> console, <code>8080</code> producer, <code>8091</code> workshop, <code>4317/4318</code> OTLP.</p>
+      </section>
+
+      <section id="step-start">
+        <div class="step-meta"><span class="step-badge">Step 2</span><span class="step-time">~15 min</span></div>
+        <h2>Start the platform</h2>
+        <div class="code-block">
+          <div class="code-block__header"><span>Terminal</span><button class="btn-copy" data-copy="cmd-2">Copy</button></div>
+          <pre><code id="cmd-2">cd ~/projects/ibm-mq-o11y-lab
+cp .env.example .env
+cp .env.splunk.example .env.splunk
+cp secrets/mqAppPassword.example.txt secrets/mqAppPassword.txt
+docker compose up --build -d
+bash scripts/verify-stack.sh</code></pre>
+        </div>
+        <p>First build compiles Node services and the <code>mq_otel</code> image (UBI + IBM MQ client). Allow several minutes.</p>
+        <div class="callout callout--tip">
+          <p class="callout__title">Verify collector</p>
+          <p><code>curl http://localhost:13133/</code> should return collector health JSON.</p>
+        </div>
+      </section>
+
+      <section id="step-topology">
+        <div class="step-meta"><span class="step-badge">Step 3</span><span class="step-time">~5 min</span></div>
+        <h2>MQ topology</h2>
+        <table class="info-table">
+          <tr><th>Queue manager</th><td><code>QM1</code></td></tr>
+          <tr><th>Channel</th><td><code>DEV.APP.SVRCONN</code></td></tr>
+          <tr><th>App user</th><td><code>app</code> (password in <code>.env</code>)</td></tr>
+          <tr><th>Request queue</th><td><code>ORDER.REQ</code></td></tr>
+          <tr><th>Response queue</th><td><code>ORDER.RESP</code> (reserved)</td></tr>
+        </table>
+        <p>Open the MQ web console and browse <strong>Queues</strong> to confirm <code>ORDER.REQ</code> exists. Developer defaults also create <code>DEV.QUEUE.*</code> objects.</p>
+      </section>
+
+      <section id="step-flow">
+        <div class="step-meta"><span class="step-badge">Step 4</span><span class="step-time">~10 min</span></div>
+        <h2>Message flow</h2>
+        <div class="code-block">
+          <div class="code-block__header"><span>Submit an order</span><button class="btn-copy" data-copy="cmd-4">Copy</button></div>
+          <pre><code id="cmd-4">curl -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -H "X-Correlation-Id: lab-order-1" \
+  -d '{"productId":"SKU-200","quantity":3}'</code></pre>
+        </div>
+        <p>Watch the consumer:</p>
+        <div class="code-block">
+          <pre><code>docker compose logs -f order-consumer</code></pre>
+        </div>
+        <p class="muted">Expected: HTTP <code>202 accepted</code> and a consumer log line with <code>Order message consumed</code>.</p>
+      </section>
+
+      <section id="step-logging">
+        <div class="step-meta"><span class="step-badge">Step 5</span><span class="step-time">~10 min</span></div>
+        <h2>Structured logging in Log Observer</h2>
+        <p>Services emit JSON logs with Splunk-compatible fields:</p>
+        <div class="code-block">
+          <pre><code>{
+  "severityText": "INFO",
+  "service.name": "order-producer",
+  "deployment.environment": "ibm-mq-lab",
+  "trace_id": "...",
+  "mq_queue": "ORDER.REQ"
+}</code></pre>
+        </div>
+        <p>In Splunk Observability Cloud → <strong>Log Observer</strong>, filter:</p>
+        <div class="code-block"><pre><code>deployment.environment:ibm-mq-lab</code></pre></div>
+        <p>Click a log line and pivot to the related trace via <code>trace_id</code>.</p>
+      </section>
+
+      <section id="step-metrics">
+        <div class="step-meta"><span class="step-badge">Step 6</span><span class="step-time">~10 min</span></div>
+        <h2>MQ metrics (<code>mq_otel</code>)</h2>
+        <p>The <code>mq-otel-exporter</code> service publishes queue manager and queue metrics over OTLP. In Splunk <strong>Metrics</strong> or chart builder, search for metrics with prefix <code>ibmmq</code> (from <code>metaprefix</code> in config).</p>
+        <ul>
+          <li>Queue depth on <code>ORDER.REQ</code> — increases during the failure demo</li>
+          <li>Channel status for <code>DEV.APP.SVRCONN</code></li>
+          <li>Queue manager connection counts</li>
+        </ul>
+        <div class="callout callout--info">
+          <p class="callout__title">Detector idea</p>
+          <p>Alert when queue depth for <code>ORDER.REQ</code> stays above a threshold for 5 minutes.</p>
+        </div>
+      </section>
+
+      <section id="step-tracing">
+        <div class="step-meta"><span class="step-badge">Step 7</span><span class="step-time">~10 min</span></div>
+        <h2>MQ tracing + APM</h2>
+        <p>Application spans: <code>order-producer</code> (<code>mq.put.order</code>) and <code>order-consumer</code> (<code>mq.get.order</code>).</p>
+        <p>MQ-native spans: tracing exit sends PUT/GET spans when <code>mqtracingexit.conf</code> is installed (see <code>mq-tracing-setup</code> service). After changing tracing config:</p>
+        <div class="code-block">
+          <div class="code-block__header"><span>Restart QM</span><button class="btn-copy" data-copy="cmd-trace">Copy</button></div>
+          <pre><code id="cmd-trace">bash scripts/mq-tracing-enable.sh</code></pre>
+        </div>
+        <p>In Splunk <strong>APM</strong>, filter environment <code>ibm-mq-lab</code>. Show service map linking producer and consumer; open a trace that crosses HTTP → MQ PUT → MQ GET.</p>
+      </section>
+
+      <section id="step-failure">
+        <div class="step-meta"><span class="step-badge">Step 8</span><span class="step-time">~10 min</span></div>
+        <h2>Failure demo — consumer stopped</h2>
+        <ol>
+          <li><code>docker compose stop order-consumer</code></li>
+          <li><code>npm run load-traffic -- 25 200</code></li>
+          <li>In Splunk Metrics, watch <code>ORDER.REQ</code> depth rise</li>
+          <li>Producer may return <code>503</code> if MQ back-pressure or timeouts occur; check ERROR logs</li>
+          <li><code>docker compose start order-consumer</code> — depth drains, logs return to INFO</li>
+        </ol>
+      </section>
+
+      <section id="troubleshoot">
+        <h2>Troubleshooting</h2>
+        <div class="trouble-grid">
+          <details>
+            <summary>No data in Splunk O11y</summary>
+            <p>Confirm <code>.env.splunk</code> ingest token and realm URLs. Check <code>docker compose logs otel-collector</code> for export errors. Set <code>OTEL_SDK_DISABLED=false</code> in <code>.env</code>.</p>
+          </details>
+          <details>
+            <summary><code>mq-otel-exporter</code> exits or restarts</summary>
+            <p>Ensure <code>secrets/mqAppPassword.txt</code> exists and matches <code>MQ_APP_PASSWORD</code>. Wait for MQ health before exporter starts.</p>
+          </details>
+          <details>
+            <summary>Producer 503 / MQ connection errors</summary>
+            <p>Verify <code>docker compose ps</code> shows MQ healthy. Connection name must be <code>mq(1414)</code> from inside Compose network.</p>
+          </details>
+          <details>
+            <summary>MQ tracing spans missing</summary>
+            <p>Tracing exit support varies by MQ version/platform. Run <code>bash scripts/mq-tracing-enable.sh</code> and generate new traffic. App-level spans still demonstrate the lab.</p>
+          </details>
+        </div>
+      </section>
+
+      <section id="wrapup">
+        <h2>Teardown and wrap-up</h2>
+        <div class="code-block">
+          <pre><code>docker compose down -v</code></pre>
+        </div>
+        <p>Discuss: metrics for capacity planning (depth), traces for latency debugging, logs for payload and correlation IDs.</p>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
