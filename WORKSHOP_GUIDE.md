@@ -47,12 +47,24 @@ This session focuses on **IBM MQ infrastructure metrics** via `mq_otel` → Open
 1. Walk through **Step 2** live — emphasize **workshop token** callout and **nano** path; offer **vi** for experienced users.
 2. **Step 4–5** — `docker compose up --build -d`, then verify script line by line.
 3. **Step 7** — `npm run load-traffic -- 30 400`.
-4. **Step 8** — Splunk Metrics: filter `metric_name:ibmmq*` or search queue depth for `ORDER.REQ`, environment `ibm-mq-lab`.
+4. **Step 8** — Splunk UI: **Settings → Metric Metadata**, search `ibmmq`; or **Create → Chart**, signal `ibmmq`, filter `deployment.environment:ibm-mq-lab` and queue `ORDER.REQ`. Mention out-of-box metrics (object status + publications; statistics off). Reference links on participant site **8c** (IBM `metrics.txt`, `mq_otel` README).
 5. **Step 9** — stop consumer, load traffic, show depth spike, restart consumer.
 
 ---
 
-## Cheat sheet
+## Metric reference (facilitator)
+
+| Resource | URL |
+|----------|-----|
+| IBM full metric list | https://github.com/ibm-messaging/mq-metric-samples/blob/master/metrics.txt |
+| `mq_otel` naming & OTLP | https://github.com/ibm-messaging/mq-metric-samples/blob/master/cmd/mq_otel/README.md |
+| IBM $SYS publication metrics | https://www.ibm.com/docs/en/ibm-mq/latest?topic=trace-metrics-published-system-topics |
+| Splunk Metadata Catalog | https://help.splunk.com/en/splunk-observability-cloud/data-tools/metric-finder-and-metadata-catalogue |
+| Splunk Chart Builder | https://help.splunk.com/en/splunk-observability-cloud/create-dashboards-and-charts/create-charts/plot-metrics-and-events-using-chart-builder |
+
+Default lab exporter flags: `useObjectStatus: true`, `usePublications: true`, `useStatistics: false` (see `mq-otel-exporter/mq_otel.yaml`).
+
+---
 
 ```bash
 cd ~/projects/ibm-mq-o11y-lab
