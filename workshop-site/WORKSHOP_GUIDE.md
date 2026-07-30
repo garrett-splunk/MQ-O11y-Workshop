@@ -69,6 +69,18 @@ Default lab exporter flags: `useObjectStatus: true`, `usePublications: true`, `u
 
 ---
 
+## Phase 2 (future session — not in Phase 1 lab)
+
+Use the **Phase 2** section on the participant site as the roadmap. Facilitator talking points:
+
+- **APM** — same stack, traces already exported; show service map for `order-producer` → MQ → `order-consumer`
+- **MQ tracing exit** — `scripts/mq-tracing-enable.sh` + `mqtracingexit.conf`
+- **Logs** — Log Observer search on JSON logs with correlation ID
+- **Statistics metrics** — `ALTER QMGR STATMQI(ON)` + `useStatistics: true`
+- **Detectors** — depth threshold on `ORDER.REQ` from Phase 1 metrics
+
+---
+
 ```bash
 cd ~/projects/ibm-mq-o11y-lab
 cp .env.example .env
