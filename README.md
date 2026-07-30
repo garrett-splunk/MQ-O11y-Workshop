@@ -17,7 +17,7 @@ bash scripts/verify-stack.sh
 
 Open the guided workshop at **https://garrett-splunk.github.io/MQ-O11y-Workshop/** (GitHub Pages from the `gh-pages` branch) or **http://localhost:8091** with the stack running.
 
-**Alternate track:** [OpenTelemetry Java Contrib `ibm-mq-metrics`](workshop-site/java-contrib.html) — same MQ stack and Splunk token; metrics use the `ibm.mq.*` prefix. Start with `docker compose --profile java-contrib up -d ibm-mq-java-metrics` after the main lab Steps 1–6.
+**Alternate track:** [OpenTelemetry Java Contrib `ibm-mq-metrics`](https://garrett-splunk.github.io/MQ-Java-Otel-Workshop/) — same MQ stack and Splunk token; metrics use the `ibm.mq.*` prefix. Start with `docker compose --profile java-contrib up -d ibm-mq-java-metrics` after the main lab Steps 1–6.
 
 | URL | Purpose |
 |-----|---------|
