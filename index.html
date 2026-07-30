@@ -39,7 +39,7 @@
         <li><a href="#step-collector" class="sidebar-tree__link" data-step="4"><span class="sidebar-tree__num">4</span> OTel collector</a></li>
         <li><a href="#step-start" class="sidebar-tree__link" data-step="5"><span class="sidebar-tree__num">5</span> Start stack</a></li>
         <li><a href="#step-verify" class="sidebar-tree__link" data-step="6"><span class="sidebar-tree__num">6</span> Verify stack</a></li>
-        <li><a href="#step-topology" class="sidebar-tree__link" data-step="7"><span class="sidebar-tree__num">7</span> MQ topology</a></li>
+        <li><a href="#step-topology" class="sidebar-tree__link" data-step="7"><span class="sidebar-tree__num">7</span> MQ topology &amp; console</a></li>
         <li><a href="#step-traffic" class="sidebar-tree__link" data-step="8"><span class="sidebar-tree__num">8</span> Generate traffic</a></li>
         <li><a href="#step-metrics" class="sidebar-tree__link" data-step="9"><span class="sidebar-tree__num">9</span> MQ metrics in Splunk</a></li>
         <li><a href="#step-failure" class="sidebar-tree__link" data-step="10"><span class="sidebar-tree__num">10</span> Depth failure demo</a></li>
@@ -422,15 +422,59 @@ curl -sf -X POST http://localhost:8080/orders \
       </section>
 
       <section id="step-topology">
-        <div class="step-meta"><span class="step-badge">Step 7</span><span class="step-time">~5 min</span></div>
-        <h2>MQ topology (what <code>mq_otel</code> monitors)</h2>
+        <div class="step-meta"><span class="step-badge">Step 7</span><span class="step-time">~10 min</span></div>
+        <h2>MQ topology &amp; web console</h2>
+        <p>Before generating traffic, confirm the queues and channel that <code>mq_otel</code> monitors match what you expect. The IBM MQ web console is optional but useful for seeing queue depth live on the broker.</p>
+
+        <h3>7a — What this lab monitors</h3>
         <table class="info-table">
           <tr><th>Queue manager</th><td><code>QM1</code></td></tr>
-          <tr><th>Channel</th><td><code>DEV.APP.SVRCONN</code></td></tr>
-          <tr><th>Primary queue for depth demo</th><td><code>ORDER.REQ</code></td></tr>
-          <tr><th>MQ console (optional)</th><td><a href="https://localhost:9443/ibmmq/console">https://localhost:9443/ibmmq/console</a> user <code>admin</code></td></tr>
+          <tr><th>Client channel</th><td><code>DEV.APP.SVRCONN</code> (producer, consumer, <code>mq_otel</code>)</td></tr>
+          <tr><th>Request queue</th><td><code>ORDER.REQ</code> — primary depth demo queue</td></tr>
+          <tr><th>Response queue</th><td><code>ORDER.RESP</code></td></tr>
+          <tr><th>Console URL</th><td><a href="https://localhost:9443/ibmmq/console">https://localhost:9443/ibmmq/console</a></td></tr>
+          <tr><th>Console login</th><td>User <code>admin</code> · password <code>MQ_ADMIN_PASSWORD</code> in <code>.env</code> (default <code>passw0rd</code>)</td></tr>
         </table>
-        <p>In the console, open <strong>Queues</strong> and confirm <code>ORDER.REQ</code> exists.</p>
+
+        <h3>7b — Open the IBM MQ web console</h3>
+        <ol>
+          <li>Ensure the stack is running (<code>docker compose ps</code> shows <code>mq</code> healthy).</li>
+          <li>Open <a href="https://localhost:9443/ibmmq/console">https://localhost:9443/ibmmq/console</a> in your browser.</li>
+          <li>Accept the <strong>self-signed certificate</strong> warning (expected for the local dev image).</li>
+          <li>Sign in as <code>admin</code> with the password from your <code>.env</code> file (<code>MQ_ADMIN_PASSWORD</code>).</li>
+          <li>Select queue manager <strong>QM1</strong> if prompted.</li>
+        </ol>
+        <div class="callout callout--warning">
+          <p class="callout__title">Console not loading?</p>
+          <p>Confirm port <code>9443</code> is mapped (<code>docker compose ps</code>). On first start, wait until <code>mq</code> is <strong>healthy</strong>, then refresh. Use <code>https://</code> (not <code>http://</code>).</p>
+        </div>
+
+        <h3>7c — Navigate to queues (find <code>ORDER.REQ</code>)</h3>
+        <p>Menu labels vary slightly by MQ version; look for the queue manager object explorer:</p>
+        <ol>
+          <li>From the QM1 overview, open <strong>Queues</strong> (sometimes under <strong>Manage</strong> → <strong>Queues</strong>).</li>
+          <li>In the queue list, search or scroll for <code>ORDER.REQ</code> and <code>ORDER.RESP</code>.</li>
+          <li>Click <code>ORDER.REQ</code> to open queue details.</li>
+          <li>Note <strong>Current depth</strong> (often <code>0</code> before Step 8 traffic). After load or the Step 10 failure demo, depth should increase when the consumer is stopped.</li>
+          <li>Optional: open <code>ORDER.RESP</code> and confirm the response queue exists.</li>
+        </ol>
+
+        <h3>7d — Verify the client channel</h3>
+        <ol>
+          <li>Open <strong>Channels</strong> for QM1.</li>
+          <li>Find <code>DEV.APP.SVRCONN</code> — this is the channel apps and <code>mq_otel</code> use to connect.</li>
+          <li>Check that the channel is defined and not in an error state (connections appear after traffic in Step 8).</li>
+        </ol>
+
+        <h3>7e — Optional checks before Splunk</h3>
+        <ul>
+          <li><strong>Queue manager status</strong> — from the QM1 summary, confirm the queue manager is <strong>Running</strong>.</li>
+          <li><strong>Compare with metrics</strong> — after Step 8, queue depth in the console should trend the same way as the Splunk metric for <code>ORDER.REQ</code> (Step 9), allowing for the ~15s <code>mq_otel</code> poll interval.</li>
+        </ul>
+        <div class="callout callout--tip">
+          <p class="callout__title">Why use the console in this lab?</p>
+          <p>The console shows <em>current</em> MQ state on the broker. Splunk shows <em>history and alerting</em>. Phase 1 teaches the Splunk path; the console helps you trust that depth changes you chart in O11y are real.</p>
+        </div>
       </section>
 
       <section id="step-traffic">
