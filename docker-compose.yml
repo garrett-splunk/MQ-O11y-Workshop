@@ -57,6 +57,7 @@ services:
     volumes:
       - ./collector/otelcol-config.yaml:/etc/otelcol/config.yaml:ro
     env_file:
+      - .env
       - path: .env.splunk
         required: false
     environment:

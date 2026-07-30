@@ -31,6 +31,12 @@ processors:
       - key: demo.name
         value: ibm-mq-o11y-lab
         action: upsert
+  transform/mq_metrics_environment:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["deployment.environment"], "ibm-mq-lab")
+          - set(attributes["deployment.environment.name"], "ibm-mq-lab")
 
 exporters:
   otlphttp/traces:
@@ -59,7 +65,7 @@ service:
       exporters: [otlphttp/traces, debug]
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, resource/add_environment, batch]
+      processors: [memory_limiter, resource/add_environment, transform/mq_metrics_environment, batch]
       exporters: [signalfx, debug]
     logs:
       receivers: [otlp]
