@@ -426,6 +426,13 @@ curl -sf -X POST http://localhost:8080/orders \
         <h2>MQ topology &amp; web console</h2>
         <p>Before generating traffic, confirm the queues and channel that <code>mq_otel</code> monitors match what you expect. The IBM MQ web console is optional but useful for seeing queue depth live on the broker.</p>
 
+        <div class="callout callout--info">
+          <p class="callout__title">MQ console login reminder</p>
+          <p>URL: <a href="https://localhost:9443/ibmmq/console">https://localhost:9443/ibmmq/console</a><br />
+          Username: <code>admin</code><br />
+          Password: value of <code>MQ_ADMIN_PASSWORD</code> in your <code>.env</code> file — <strong>default for this lab is <code>passw0rd</code></strong> (unless you changed it).</p>
+        </div>
+
         <h3>7a — What this lab monitors</h3>
         <table class="info-table">
           <tr><th>Queue manager</th><td><code>QM1</code></td></tr>
@@ -437,6 +444,10 @@ curl -sf -X POST http://localhost:8080/orders \
         </table>
 
         <h3>7b — Open the IBM MQ web console</h3>
+        <div class="callout callout--tip">
+          <p class="callout__title">Password reminder</p>
+          <p>When the login screen appears, use <code>admin</code> / <code>passw0rd</code> if you have not edited <code>.env</code>. To confirm your password without opening the file in front of others, run: <code>grep MQ_ADMIN_PASSWORD .env</code></p>
+        </div>
         <ol>
           <li>Ensure the stack is running (<code>docker compose ps</code> shows <code>mq</code> healthy).</li>
           <li>Open <a href="https://localhost:9443/ibmmq/console">https://localhost:9443/ibmmq/console</a> in your browser.</li>
@@ -624,6 +635,7 @@ npm run load-traffic -- 30 400</code></pre>
             <div class="code-block"><pre><code>npm run load-traffic -- 25 200</code></pre></div>
           </li>
           <li><strong>In Splunk O11y</strong> — follow Step 9: Metadata Catalog or Chart Builder, filter <code>deployment.environment:ibm-mq-lab</code>, chart <code>ORDER.REQ</code> depth.</li>
+          <li><strong>Optional — MQ console</strong> — refresh <code>ORDER.REQ</code> in the web console (Step 7; login <code>admin</code> / <code>passw0rd</code>) to see depth climb live on the broker.</li>
           <li>
             <strong>Restore processing</strong>
             <div class="code-block"><pre><code>docker compose start order-consumer</code></pre></div>
