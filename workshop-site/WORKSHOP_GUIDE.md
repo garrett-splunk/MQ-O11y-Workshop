@@ -13,9 +13,9 @@ This session focuses on **IBM MQ infrastructure metrics** via `mq_otel` → Open
 | Block | Duration | Section |
 |-------|----------|---------|
 | Intro + concepts | 10 min | Overview, Concepts |
-| Token + secrets + start | 20 min | Steps 1–4 |
-| Verify + traffic | 15 min | Steps 5–7 |
-| Metrics in Splunk + failure demo | 15 min | Steps 8–9 |
+| Token + secrets + collector ref | 15 min | Steps 1–4 |
+| Start + verify + traffic | 20 min | Steps 5–8 |
+| Metrics in Splunk + failure demo | 15 min | Steps 9–10 |
 | Wrap-up | 5 min | Teardown |
 
 ---
@@ -45,10 +45,11 @@ This session focuses on **IBM MQ infrastructure metrics** via `mq_otel` → Open
 ## Facilitator demo script
 
 1. Walk through **Step 2** live — emphasize **workshop token** callout and **nano** path; offer **vi** for experienced users.
-2. **Step 4–5** — `docker compose up --build -d`, then verify script line by line.
-3. **Step 7** — `npm run load-traffic -- 30 400`.
-4. **Step 8** — Splunk UI: **Settings → Metric Metadata**, search `ibmmq`; or **Create → Chart**, signal `ibmmq`, filter `deployment.environment:ibm-mq-lab` and queue `ORDER.REQ`. Mention out-of-box metrics (object status + publications; statistics off). Reference links on participant site **8c** (IBM `metrics.txt`, `mq_otel` README).
-5. **Step 9** — stop consumer, load traffic, show depth spike, restart consumer.
+2. **Step 4** — skim OTel collector reference (`docker-compose.yml` + `collector/otelcol-config.yaml` metrics pipeline); no manual install.
+3. **Step 5–6** — `docker compose up --build -d`, then verify script line by line.
+4. **Step 8** — `npm run load-traffic -- 30 400`.
+5. **Step 9** — Splunk UI: **Settings → Metric Metadata**, search `ibmmq`; or **Create → Chart**, signal `ibmmq`, filter `deployment.environment:ibm-mq-lab` and queue `ORDER.REQ`. Mention out-of-box metrics (object status + publications; statistics off). Reference links on participant site **9c** (IBM `metrics.txt`, `mq_otel` README).
+6. **Step 10** — stop consumer, load traffic, show depth spike, restart consumer.
 
 ---
 
@@ -61,6 +62,8 @@ This session focuses on **IBM MQ infrastructure metrics** via `mq_otel` → Open
 | IBM $SYS publication metrics | https://www.ibm.com/docs/en/ibm-mq/latest?topic=trace-metrics-published-system-topics |
 | Splunk Metadata Catalog | https://help.splunk.com/en/splunk-observability-cloud/data-tools/metric-finder-and-metadata-catalogue |
 | Splunk Chart Builder | https://help.splunk.com/en/splunk-observability-cloud/create-dashboards-and-charts/create-charts/plot-metrics-and-events-using-chart-builder |
+| Splunk OTel Collector (production) | https://help.splunk.com/en/splunk-observability-cloud/manage-data/splunk-distribution-of-the-opentelemetry-collector/get-started-with-the-splunk-distribution-of-the-opentelemetry-collector/collector-for-linux/install-the-collector-for-linux-manual |
+| Splunk OTel Collector releases | https://github.com/signalfx/splunk-otel-collector/releases |
 
 Default lab exporter flags: `useObjectStatus: true`, `usePublications: true`, `useStatistics: false` (see `mq-otel-exporter/mq_otel.yaml`).
 
