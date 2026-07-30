@@ -515,7 +515,12 @@ npm run load-traffic -- 30 400</code></pre>
           <li>Click <strong>Metric Explorer</strong>.</li>
           <li>Click <strong>Add filter</strong> (or the filter bar) and enter <code>deployment.environment:ibm-mq-lab</code>.</li>
           <li>In the metric search box, type <code>ibmmq</code> and select a metric (for example queue depth).</li>
-          <li>Optional: add another filter for queue name <code>ORDER.REQ</code> when that dimension appears on the series.</li>
+          <li>Optional: add a queue filter for <code>ORDER.REQ</code> when the <code>queue</code> dimension appears on the series. In the UI the tag looks like <code>queue = ORDER.REQ</code> (pick it from the filter list or type it in the filter bar).
+            <figure class="screenshot">
+              <img class="screenshot__img" src="screenshots/mq-workshop-queue-filter-order-req.png" alt="Splunk Observability Cloud filter tag queue equals ORDER.REQ" loading="lazy" width="353" height="243" />
+              <figcaption class="screenshot__caption">Optional queue filter — <code>queue = ORDER.REQ</code> narrows depth to the lab request queue.</figcaption>
+            </figure>
+          </li>
           <li>Set the time range to <strong>Past 15 minutes</strong> (or <strong>Past 1 hour</strong> while debugging).</li>
         </ol>
         <figure class="screenshot">
