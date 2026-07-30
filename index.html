@@ -44,6 +44,7 @@
         <li><a href="#step-metrics" class="sidebar-tree__link" data-step="9"><span class="sidebar-tree__num">9</span> MQ metrics in Splunk</a></li>
         <li><a href="#step-failure" class="sidebar-tree__link" data-step="10"><span class="sidebar-tree__num">10</span> Depth failure demo</a></li>
         <li><a href="#troubleshoot" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">?</span> Troubleshooting</a></li>
+        <li><a href="#phase-2" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">→</span> Phase 2</a></li>
         <li><a href="#wrapup" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">—</span> Teardown</a></li>
       </ul>
       <div class="sidebar-footer">
@@ -626,6 +627,78 @@ docker compose up -d order-producer order-consumer</code></pre></div>
             <p>Match <code>SPLUNK_INGEST_URL</code> to the realm you use to sign in (us0, us1, eu0, etc.).</p>
           </details>
         </div>
+      </section>
+
+      <section id="phase-2">
+        <h2>Phase 2 — What could come next</h2>
+        <p class="lead" style="font-size:1rem;margin-bottom:1rem;">This workshop (Phase 1) focuses on <strong>IBM MQ infrastructure metrics</strong> in Splunk Metrics. The repo already contains pieces for a fuller observability story — Phase 2 would turn those on and add guided exercises.</p>
+
+        <div class="callout callout--concept">
+          <p class="callout__title">Phase 1 recap</p>
+          <p><code>mq_otel</code> → OpenTelemetry Collector → Splunk <strong>Metrics</strong> · queue depth on <code>ORDER.REQ</code> · environment <code>ibm-mq-lab</code></p>
+        </div>
+
+        <h3>Potential Phase 2 modules</h3>
+        <table class="info-table">
+          <thead><tr><th>Module</th><th>What learners would do</th><th>Already in this repo</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>APM &amp; end-to-end traces</strong></td>
+              <td>Place an order via <code>POST /orders</code> and follow one request from <code>order-producer</code> → IBM MQ → <code>order-consumer</code> in Splunk APM. Tie spans together with correlation IDs.</td>
+              <td>Node services export OTLP traces; collector <code>traces</code> pipeline → Splunk ingest</td>
+            </tr>
+            <tr>
+              <td><strong>IBM MQ native tracing</strong></td>
+              <td>Enable the MQ OpenTelemetry tracing exit and inspect MQ-internal spans alongside application traces.</td>
+              <td><code>mq/mqtracingexit.conf</code>, <code>mq-tracing-setup</code> service, <code>scripts/mq-tracing-enable.sh</code></td>
+            </tr>
+            <tr>
+              <td><strong>Logs in Splunk</strong></td>
+              <td>Search structured JSON logs from producer/consumer in Log Observer; filter by <code>service.name</code> and correlation ID.</td>
+              <td>Shared logger + collector <code>logs</code> pipeline (<code>splunk_hec/o11y</code> exporter)</td>
+            </tr>
+            <tr>
+              <td><strong>MQI statistics metrics</strong></td>
+              <td>Chart <code>mqput</code> / <code>mqget</code> counters and queue timing metrics (not just object status depth).</td>
+              <td>Enable <code>STATMQI</code> on QM1 + <code>useStatistics: true</code> in <code>mq_otel.yaml</code></td>
+            </tr>
+            <tr>
+              <td><strong>Detectors &amp; dashboards</strong></td>
+              <td>Build a detector when <code>ORDER.REQ</code> depth exceeds a threshold; assemble an MQ ops dashboard (depth, channel status, qmgr health).</td>
+              <td>Metrics from Phase 1; Splunk Chart Builder / detectors (Step 9)</td>
+            </tr>
+            <tr>
+              <td><strong>Production collector path</strong></td>
+              <td>Compare lab <code>opentelemetry-collector-contrib</code> with Splunk’s distribution image and a hardened deploy pattern.</td>
+              <td>Step 4 reference; swap to <code>quay.io/signalfx/splunk-otel-collector</code> in Compose</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Phase 2 data flow (conceptual)</h3>
+        <div class="flow-diagram" role="img" aria-label="Phase 2 observability flow">
+          <div class="flow-node"><div class="flow-title">order-producer</div><div class="flow-sub">traces · logs</div></div>
+          <div class="flow-arrow"><span>→</span></div>
+          <div class="flow-node flow-node-accent"><div class="flow-title">IBM MQ</div><div class="flow-sub">metrics · tracing exit</div></div>
+          <div class="flow-arrow"><span>→</span></div>
+          <div class="flow-node"><div class="flow-title">order-consumer</div><div class="flow-sub">traces · logs</div></div>
+          <div class="flow-arrow"><span>→</span></div>
+          <div class="flow-node"><div class="flow-title">OTel Collector</div><div class="flow-sub">metrics · traces · logs</div></div>
+          <div class="flow-arrow"><span>→</span></div>
+          <div class="flow-node"><div class="flow-title">Splunk O11y</div><div class="flow-sub">Metrics · APM · Log Observer</div></div>
+        </div>
+
+        <h3>Suggested Phase 2 workshop shape (~60–90 min)</h3>
+        <ol>
+          <li>Quick Phase 1 refresh — confirm metrics and queue depth still flowing.</li>
+          <li>APM lab — trace a single order; locate MQ-related spans and service map edges.</li>
+          <li>Enable MQ tracing exit (facilitator-led); compare native MQ spans vs app spans.</li>
+          <li>Log search — find producer/consumer JSON logs for the same correlation ID.</li>
+          <li>Optional — enable MQI statistics and add throughput charts next to depth.</li>
+          <li>Capstone — create a depth detector and walk an intentional backlog (Step 10 replay) with metrics + traces + logs.</li>
+        </ol>
+
+        <p class="muted">Phase 2 is not required to get value from Phase 1. Treat it as a roadmap for teams moving from <em>“can we see MQ?”</em> to <em>“can we debug a message path under load?”</em></p>
       </section>
 
       <section id="wrapup">
