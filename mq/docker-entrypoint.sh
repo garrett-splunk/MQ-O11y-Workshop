@@ -22,7 +22,7 @@ apply_lab_mqsc() {
 }
 
   (
-  if apply_lab_mqsc && [ -x /opt/bin/mq_otel ]; then
+  if apply_lab_mqsc && [ -x /opt/bin/mq_otel ] && [ "${DISABLE_MQ_OTEL:-false}" != "true" ]; then
     # Let the command server finish starting after chkmqready.
     sleep 15
     export IBMMQ_GLOBAL_CONFIGURATIONFILE=/opt/config/mq_otel.yaml

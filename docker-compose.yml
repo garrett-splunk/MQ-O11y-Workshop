@@ -28,6 +28,7 @@ services:
       MQ_DEV: "true"
       MQ_ADMIN_PASSWORD: ${MQ_ADMIN_PASSWORD:-passw0rd}
       MQ_APP_PASSWORD: ${MQ_APP_PASSWORD:-passw0rd}
+      DISABLE_MQ_OTEL: ${DISABLE_MQ_OTEL:-false}
     ports:
       - "1414:1414"
       - "9443:9443"
@@ -69,6 +70,26 @@ services:
       - "4317:4317"
       - "4318:4318"
       - "13133:13133"
+
+  ibm-mq-java-metrics:
+    platform: linux/amd64
+    profiles: ["java-contrib"]
+    build:
+      context: ./ibm-mq-java-metrics
+    depends_on:
+      mq:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    environment:
+      MQ_HOST: mq
+      MQ_PORT: "1414"
+      MQ_CHANNEL: MQOTEL.SVRCONN
+      MQ_USER: ${MQ_USER:-app}
+      MQ_PASSWORD: ${MQ_APP_PASSWORD:-passw0rd}
+      OTLP_ENDPOINT: http://otel-collector:4318
+      SCRAPE_INTERVAL_SECONDS: "15"
+    restart: unless-stopped
 
   mq-otel-exporter:
     platform: linux/amd64

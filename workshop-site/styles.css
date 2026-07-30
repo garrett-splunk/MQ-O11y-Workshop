@@ -65,6 +65,8 @@ body { margin: 0; font-family: var(--font-body); font-size: 1.05rem; line-height
 .sidebar-tree__link.is-active { background: color-mix(in oklab, var(--color-accent) 10%, transparent); color: var(--color-accent-text); font-weight: 600; }
 .sidebar-tree__num { min-width: 1.35rem; height: 1.35rem; display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 0.65rem; border-radius: 999px; background: var(--color-surface-alt); }
 .sidebar-footer { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--color-border); font-size: 0.78rem; }
+.sidebar-footer a { display: block; margin-top: 0.45rem; }
+.sidebar-footer a:first-child { margin-top: 0; }
 
 .prose { max-width: var(--content-max); width: 100%; justify-self: center; }
 .prose h1 { font-size: clamp(2rem, 4vw + 1rem, 2.75rem); margin: 0 0 0.75rem; }

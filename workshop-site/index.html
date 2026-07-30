@@ -50,6 +50,7 @@
       </ul>
       <div class="sidebar-footer">
         <a href="WORKSHOP_GUIDE.md">Facilitator guide</a>
+        <a href="java-contrib.html">Alternate track: OpenTelemetry Java Contrib</a>
       </div>
     </aside>
 
@@ -905,6 +906,11 @@ docker compose up -d order-producer order-consumer</code></pre></div>
 docker compose down -v</code></pre>
         </div>
         <p>Recap: <code>mq_otel</code> exposes IBM MQ metrics; Splunk Observability Cloud Metrics shows queue depth and related signals for operations and alerting.</p>
+        <div class="callout callout--info">
+          <p class="callout__title">Want the OpenTelemetry Java Contrib exporter instead?</p>
+          <p>This lab’s default track uses IBM’s Go <code>mq_otel</code> sidecar (embedded in the MQ container). For the community-maintained Java PCF monitor (<code>ibm.mq.*</code> metrics), follow the alternate workshop — same MQ stack and Splunk Observability Cloud token, different exporter.</p>
+          <p><a href="java-contrib.html"><strong>OpenTelemetry Java Contrib alternate track →</strong></a></p>
+        </div>
       </section>
     </main>
   </div>
