@@ -48,7 +48,7 @@ This session focuses on **IBM MQ infrastructure metrics** via `mq_otel` → Open
 2. **Step 4** — skim OTel collector reference (`docker-compose.yml` + `collector/otelcol-config.yaml` metrics pipeline); no manual install.
 3. **Step 5–6** — `docker compose up --build -d`, then verify script line by line.
 4. **Step 8** — `npm run load-traffic -- 30 400`.
-5. **Step 7 (optional live)** — MQ web console: <code>https://localhost:9443/ibmmq/console</code>, admin login, Queues → <code>ORDER.REQ</code> depth, Channels → <code>DEV.APP.SVRCONN</code>.
+5. **Step 7 (optional live)** — MQ web console: `https://localhost:9443/ibmmq/console`, admin login, Queues → `ORDER.REQ` depth, Channels → `DEV.APP.SVRCONN`.
 6. **Step 9** — Splunk UI: **Settings → Metric Metadata**, search `ibmmq`; or **Create → Chart**, signal `ibmmq`, filter `deployment.environment:ibm-mq-lab` and queue `ORDER.REQ`. Mention out-of-box metrics (object status + publications; statistics off). Reference links on participant site **9c** (IBM `metrics.txt`, `mq_otel` README).
 7. **Step 10** — stop consumer, load traffic, show depth spike in Splunk and optionally in MQ console, restart consumer.
 
