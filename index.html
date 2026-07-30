@@ -250,16 +250,32 @@ cp secrets/mqAppPassword.example.txt secrets/mqAppPassword.txt</code></pre>
           <pre><code id="cmd-4">cd ~/projects/ibm-mq-o11y-lab
 docker compose up --build -d</code></pre>
         </div>
+        <figure class="screenshot screenshot--terminal">
+          <img class="screenshot__img" src="screenshots/mq-workshop-docker-build.png" alt="Terminal showing Docker build steps for mq-otel-exporter and order services" loading="lazy" width="720" height="405" />
+          <figcaption class="screenshot__caption">First build compiles the custom <code>mq-otel-exporter</code> image and Node services — allow several minutes.</figcaption>
+        </figure>
+        <figure class="screenshot screenshot--terminal">
+          <img class="screenshot__img" src="screenshots/mq-workshop-docker-compose-starting.png" alt="Docker Compose starting containers with mq waiting for health" loading="lazy" width="720" height="405" />
+          <figcaption class="screenshot__caption">Compose brings containers up; <code>mq</code> may show <strong>Waiting</strong> until the queue manager passes its health check (~60s on first start).</figcaption>
+        </figure>
         <p>Wait until MQ is healthy:</p>
         <div class="code-block">
           <div class="code-block__header"><span>Check status</span><button class="btn-copy" data-copy="cmd-4b">Copy</button></div>
           <pre><code id="cmd-4b">docker compose ps</code></pre>
         </div>
+        <figure class="screenshot screenshot--terminal">
+          <img class="screenshot__img" src="screenshots/mq-docker-compose-ps-output.png" alt="docker compose ps showing mq healthy and services running" loading="lazy" width="720" height="405" />
+          <figcaption class="screenshot__caption">Healthy stack: <code>mq</code> is <strong>healthy</strong>; <code>mq-otel-exporter</code>, <code>otel-collector</code>, producer, and consumer are <strong>Up</strong> (not <strong>Restarting</strong>).</figcaption>
+        </figure>
         <p class="muted">Expect <code>mq</code> healthy, then <code>mq-otel-exporter</code>, <code>otel-collector</code>, <code>order-producer</code>, and <code>order-consumer</code> running.</p>
         <p>If you edited <code>.env.splunk</code> after the stack was already up (same editors as Step 2: <code>nano .env.splunk</code> or <code>vi .env.splunk</code>), reload the collector:</p>
         <div class="code-block">
           <pre><code>docker compose up -d otel-collector</code></pre>
         </div>
+        <figure class="screenshot screenshot--terminal">
+          <img class="screenshot__img" src="screenshots/mq-docker-compose-otel-collector-restart.png" alt="docker compose up -d otel-collector showing container running" loading="lazy" width="720" height="120" />
+          <figcaption class="screenshot__caption">After a token change, restart only the collector so it picks up <code>.env.splunk</code>.</figcaption>
+        </figure>
       </section>
 
       <section id="step-verify">
@@ -271,6 +287,10 @@ docker compose up --build -d</code></pre>
           <pre><code id="cmd-verify">cd ~/projects/ibm-mq-o11y-lab
 bash scripts/verify-stack.sh</code></pre>
         </div>
+        <figure class="screenshot screenshot--terminal">
+          <img class="screenshot__img" src="screenshots/mq-workshop-verify-stack.png" alt="verify-stack.sh output showing otel-collector health OK" loading="lazy" width="720" height="200" />
+          <figcaption class="screenshot__caption">Partial output from <code>verify-stack.sh</code> — collector health returns <code>OK otel-collector health</code>. The script continues through producer, consumer, and a sample order.</figcaption>
+        </figure>
 
         <h3>What the script checks (in order)</h3>
         <table class="info-table">
@@ -490,6 +510,25 @@ npm run load-traffic -- 30 400</code></pre>
       <section id="troubleshoot">
         <h2>Troubleshooting</h2>
         <div class="trouble-grid">
+          <details open>
+            <summary><code>Cannot connect</code> / <code>MQRC_UNKNOWN_CHANNEL_NAME</code> / <code>mq-otel-exporter</code> Restarting</summary>
+            <p>The metrics exporter and apps connect on channel <code>DEV.APP.SVRCONN</code>. If an old MQ data volume was created without dev objects, that channel may be missing.</p>
+            <p><strong>Fix:</strong> rebuild and recreate the stack so lab MQSC runs on startup:</p>
+            <div class="code-block"><pre><code>cd ~/projects/ibm-mq-o11y-lab
+git pull
+docker compose up --build -d
+docker compose logs mq-otel-exporter --tail 20</code></pre></div>
+            <p>If it still fails, reset the queue manager volume (destroys local MQ data):</p>
+            <div class="code-block"><pre><code>docker compose down -v
+docker compose up --build -d</code></pre></div>
+            <p>Confirm <code>secrets/mqAppPassword.txt</code> matches <code>MQ_APP_PASSWORD</code> in <code>.env</code> (default <code>passw0rd</code>).</p>
+          </details>
+          <details>
+            <summary><code>Cannot find MQ C library</code> on order-producer / order-consumer</summary>
+            <p>On Apple Silicon, services run as <code>linux/amd64</code> images with the MQ client installed. Rebuild after pulling latest:</p>
+            <div class="code-block"><pre><code>docker compose build --no-cache order-producer order-consumer
+docker compose up -d order-producer order-consumer</code></pre></div>
+          </details>
           <details>
             <summary>No IBM MQ metrics in Splunk</summary>
             <p>Verify <code>.env.splunk</code> token and realm URLs. Run <code>docker compose up -d otel-collector</code>. Check <code>docker compose logs mq-otel-exporter</code> and <code>docker compose logs otel-collector</code>. Ensure <code>secrets/mqAppPassword.txt</code> exists.</p>

@@ -120,3 +120,43 @@ body { margin: 0; font-family: var(--font-body); font-size: 1.05rem; line-height
   .page { grid-template-columns: 1fr; }
   .sidebar { position: static; max-height: none; border-bottom: 1px solid var(--color-border); margin-bottom: 1rem; }
 }
+
+/* Workshop screenshots */
+.screenshot {
+  display: block;
+  width: min(100%, 640px);
+  margin: 1.25rem 0 1.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.screenshot__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.screenshot--terminal {
+  width: min(100%, 720px);
+}
+
+.screenshot__caption {
+  padding: 0.65rem 0.85rem;
+  font-size: var(--fs-xs, 0.78rem);
+  line-height: 1.45;
+  color: var(--color-ink-muted);
+}
+
+.screenshot__caption code {
+  font-size: 0.85em;
+}
+
+@media (max-width: 768px) {
+  .screenshot,
+  .screenshot--terminal {
+    width: 100%;
+  }
+}
