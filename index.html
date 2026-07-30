@@ -275,7 +275,7 @@ cp secrets/mqAppPassword.example.txt secrets/mqAppPassword.txt</code></pre>
         <p class="muted">Production alternative (not used in this lab): <code>quay.io/signalfx/splunk-otel-collector:&lt;version&gt;</code> — pin a semver tag from <a href="https://github.com/signalfx/splunk-otel-collector/releases" target="_blank" rel="noopener">Splunk OTel Collector releases</a>.</p>
 
         <h3>4b — Metrics pipeline config (Splunk export)</h3>
-        <p>From <code>collector/otelcol-config.yaml</code>. <code>mq_otel</code> sends OTLP metrics to port <code>4317</code>; the collector adds the lab environment dimension and forwards metrics to Splunk via the <code>signalfx</code> exporter using <code>SPLUNK_ACCESS_TOKEN</code> and realm URLs from Step 2.</p>
+        <p>From <code>collector/otelcol-config.yaml</code>. <code>mq_otel</code> sends OTLP metrics to port <code>4317</code>; the collector adds <code>deployment.environment:ibm-mq-lab</code> (and <code>deployment.environment.name</code>) on every metric resource before export to Splunk.</p>
         <div class="code-block">
           <div class="code-block__header"><span>collector/otelcol-config.yaml</span><button class="btn-copy" data-copy="snippet-collector-yaml">Copy</button></div>
           <pre><code id="snippet-collector-yaml">receivers:
@@ -297,6 +297,12 @@ processors:
       - key: deployment.environment.name
         value: ${DEPLOYMENT_ENVIRONMENT}
         action: upsert
+  transform/mq_metrics_environment:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["deployment.environment"], "ibm-mq-lab")
+          - set(attributes["deployment.environment.name"], "ibm-mq-lab")
 
 exporters:
   signalfx:
@@ -309,7 +315,7 @@ service:
   pipelines:
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, resource/add_environment, batch]
+      processors: [memory_limiter, resource/add_environment, transform/mq_metrics_environment, batch]
       exporters: [signalfx]</code></pre>
         </div>
         <p class="muted">The full file in the repo also defines trace and log pipelines; this metrics track uses the <strong>metrics</strong> pipeline above. Open the complete file locally if you want to see health checks and debug exporters.</p>
@@ -516,38 +522,44 @@ npm run load-traffic -- 30 400</code></pre>
         <p>After Step 8, allow 1–2 minutes for ingest. All series from this lab use the <code>ibmmq</code> prefix (see <code>metaprefix</code> in <code>mq-otel-exporter/mq_otel.yaml</code>) and are tagged with <code>deployment.environment:ibm-mq-lab</code>.</p>
 
         <h3>9a — Find metrics in the Splunk O11y UI</h3>
-        <p>Use any of these paths (wording may vary slightly by UI version):</p>
+        <p>All IBM MQ metrics from this lab are tagged <code>deployment.environment:ibm-mq-lab</code>. Start with Metric Explorer and apply that filter first.</p>
 
-        <h4>Option 1 — Metadata Catalog (best for discovery)</h4>
+        <h4>Recommended — Metrics → Metric Explorer</h4>
         <ol>
           <li>Sign in to Splunk Observability Cloud.</li>
+          <li>Open <strong>Metrics</strong> in the main navigation.</li>
+          <li>Click <strong>Metric Explorer</strong>.</li>
+          <li>Click <strong>Add filter</strong> (or the filter bar) and enter <code>deployment.environment:ibm-mq-lab</code>.</li>
+          <li>In the metric search box, type <code>ibmmq</code> and select a metric (for example queue depth).</li>
+          <li>Optional: add another filter for queue name <code>ORDER.REQ</code> when that dimension appears on the series.</li>
+          <li>Set the time range to <strong>Past 15 minutes</strong> (or <strong>Past 1 hour</strong> while debugging).</li>
+        </ol>
+        <div class="callout callout--info">
+          <p class="callout__title">Lab environment filter</p>
+          <p>Always include <code>deployment.environment:ibm-mq-lab</code> so you only see metrics from this workshop stack, not other environments in your org.</p>
+        </div>
+
+        <h4>Option 2 — Metadata Catalog</h4>
+        <ol>
           <li>Open the main menu → <strong>Settings</strong> → <strong>Metric Metadata</strong> (Metadata Catalog).</li>
-          <li>In the search bar, type <code>ibmmq</code> and pick a matching metric name from the list.</li>
-          <li>Review the preview chart, metric type (gauge vs counter), and <strong>dimensions</strong> (queue name, channel name, queue manager, etc.).</li>
-          <li>Use <strong>View in chart</strong> (or equivalent) to open Chart Builder with that metric pre-selected.</li>
+          <li>Search for <code>deployment.environment:ibm-mq-lab</code> or a metric name containing <code>ibmmq</code>.</li>
+          <li>Review dimensions and use <strong>View in chart</strong> to open Chart Builder.</li>
         </ol>
         <p class="muted">Splunk docs: <a href="https://help.splunk.com/en/splunk-observability-cloud/data-tools/metric-finder-and-metadata-catalogue" target="_blank" rel="noopener">Metric Finder and Metadata Catalog</a></p>
 
-        <h4>Option 2 — Create a chart (Chart Builder)</h4>
+        <h4>Option 3 — Create a chart (Chart Builder)</h4>
         <ol>
           <li>Click <strong>Create</strong> (<strong>+</strong>) in the top navigation → <strong>Chart</strong>.</li>
-          <li>Set the time range to <strong>Past 15 minutes</strong> (or <strong>Past 1 hour</strong> while debugging).</li>
-          <li>In the plot editor <strong>Signal</strong> field, type a metric name containing <code>ibmmq</code> (see naming note below).</li>
-          <li>Add a filter on the plot, for example <code>deployment.environment:ibm-mq-lab</code>.</li>
-          <li>To focus on the order request queue, add a dimension filter for queue name <code>ORDER.REQ</code> when that dimension appears on the series (exact key name is shown in the Metadata Catalog for your metric).</li>
-          <li>Save the chart to a dashboard if you like.</li>
+          <li>Set the time range to <strong>Past 15 minutes</strong>.</li>
+          <li>In the plot editor <strong>Signal</strong> field, type a metric name containing <code>ibmmq</code>.</li>
+          <li>Add filter <code>deployment.environment:ibm-mq-lab</code>.</li>
+          <li>Add a queue filter for <code>ORDER.REQ</code> when charting depth.</li>
         </ol>
         <p class="muted">Splunk docs: <a href="https://help.splunk.com/en/splunk-observability-cloud/create-dashboards-and-charts/create-charts/create-charts" target="_blank" rel="noopener">Create charts</a> · <a href="https://help.splunk.com/en/splunk-observability-cloud/create-dashboards-and-charts/create-charts/plot-metrics-and-events-using-chart-builder" target="_blank" rel="noopener">Plot metrics with Chart Builder</a></p>
 
-        <h4>Option 3 — Metric Finder</h4>
-        <ol>
-          <li>From the main navigation, open <strong>Metric Finder</strong> (or search “metrics” in the menu).</li>
-          <li>Search for <code>ibmmq</code> and open a result to chart it.</li>
-        </ol>
-
         <div class="callout callout--tip">
           <p class="callout__title">Metric naming in Splunk</p>
-          <p>The exporter emits OpenTelemetry names such as <code>ibmmq.queue.depth</code> (object type in the middle: <code>queue</code>, <code>channel</code>, <code>qmgr</code>, …). Splunk may display dots or underscores — search for <code>ibmmq</code> and use the Metadata Catalog rather than guessing the exact string.</p>
+          <p>The exporter emits OpenTelemetry names such as <code>ibmmq.queue.depth</code>. Splunk may display dots or underscores — use Metric Explorer with the <code>ibmmq</code> prefix and <code>deployment.environment:ibm-mq-lab</code> filter rather than guessing the exact string.</p>
         </div>
 
         <h3>9b — Metrics you get out of the box in this lab</h3>
@@ -605,10 +617,10 @@ npm run load-traffic -- 30 400</code></pre>
         <h3>9d — Chart queue depth for this lab</h3>
         <ol>
           <li>Run sustained load (Step 8) or the Step 10 failure demo so depth moves.</li>
-          <li>In Metadata Catalog or Chart Builder, locate an <code>ibmmq</code> queue depth metric.</li>
-          <li>Filter <code>deployment.environment:ibm-mq-lab</code>.</li>
-          <li>Filter or group by queue name <code>ORDER.REQ</code>.</li>
-          <li>Plot as a line chart over <strong>Past 15 minutes</strong>; re-run load if the line is flat.</li>
+          <li>Open <strong>Metrics</strong> → <strong>Metric Explorer</strong>.</li>
+          <li>Add filter <code>deployment.environment:ibm-mq-lab</code>.</li>
+          <li>Search for an <code>ibmmq</code> queue depth metric; filter or group by queue <code>ORDER.REQ</code>.</li>
+          <li>Plot over <strong>Past 15 minutes</strong>; re-run load if the line is flat.</li>
         </ol>
         <div class="callout callout--info">
           <p class="callout__title">Metrics to discuss</p>
@@ -634,7 +646,7 @@ npm run load-traffic -- 30 400</code></pre>
             <strong>Send load</strong>
             <div class="code-block"><pre><code>npm run load-traffic -- 25 200</code></pre></div>
           </li>
-          <li><strong>In Splunk O11y</strong> — follow Step 9: Metadata Catalog or Chart Builder, filter <code>deployment.environment:ibm-mq-lab</code>, chart <code>ORDER.REQ</code> depth.</li>
+          <li><strong>In Splunk O11y</strong> — <strong>Metrics</strong> → <strong>Metric Explorer</strong>, filter <code>deployment.environment:ibm-mq-lab</code>, chart <code>ORDER.REQ</code> depth (Step 9).</li>
           <li><strong>Optional — MQ console</strong> — refresh <code>ORDER.REQ</code> in the web console (Step 7; login <code>admin</code> / <code>passw0rd</code>) to see depth climb live on the broker.</li>
           <li>
             <strong>Restore processing</strong>
