@@ -1,10 +1,10 @@
-# IBM MQ → Splunk O11y — Facilitator Guide (metrics track)
+# IBM MQ → Splunk Observability Cloud — Facilitator Guide (metrics track)
 
 **Participant site:** https://garrett-splunk.github.io/MQ-O11y-Workshop/
 
 **Lab root:** `~/projects/ibm-mq-o11y-lab`
 
-This session focuses on **IBM MQ infrastructure metrics** via `mq_otel` → OpenTelemetry Collector → Splunk **Metrics** (not APM/traces/logging in the lab narrative).
+This session focuses on **IBM MQ infrastructure metrics** via `mq_otel` → OpenTelemetry Collector → Splunk Observability Cloud **Metrics** (not APM/traces/logging in the lab narrative).
 
 ---
 
@@ -33,7 +33,7 @@ This session focuses on **IBM MQ infrastructure metrics** via `mq_otel` → Open
 
 ## Facilitator: sharing the token
 
-1. Create or reuse an **Ingest** access token in Splunk O11y (Organization Settings → Access Tokens).
+1. Create or reuse an **Ingest** access token in Splunk Observability Cloud (Organization Settings → Access Tokens).
 2. Display the token once on a slide or paste into the workshop chat; tell learners their realm (e.g. `us1`) and matching ingest URLs if not US1.
 3. Ask learners to follow **Step 2** on the participant site: `cp` the template, then edit with terminal only:
    - **nano:** `nano .env.splunk` → replace `SPLUNK_ACCESS_TOKEN=` → Ctrl+O, Enter, Ctrl+X
@@ -48,9 +48,9 @@ This session focuses on **IBM MQ infrastructure metrics** via `mq_otel` → Open
 2. **Step 4** — skim OTel collector reference (`docker-compose.yml` + `collector/otelcol-config.yaml` metrics pipeline); no manual install.
 3. **Step 5–6** — `docker compose up --build -d`, then verify script line by line.
 4. **Step 8** — `npm run load-traffic -- 30 400`.
-5. **Step 7 (optional live)** — MQ console: login (`admin` / `passw0rd`) → **Manage QM1** → Overview / Queues / Channels (see screenshots on participant site Step 7b).
-6. **Step 9** — Splunk UI: **Metrics → Metric Explorer**, add filter `deployment.environment:ibm-mq-lab`, search `ibmmq`, chart `ORDER.REQ` depth. Mention out-of-box metrics (object status + publications; statistics off). Reference links on participant site **9c**.
-7. **Step 10** — stop consumer, load traffic, show depth spike in Splunk and optionally in MQ console, restart consumer.
+5. **Step 7 (optional)** — Skim **7a** topology table; console login through **Manage QM1** in **7b** only if facilitators want a live MQ UI demo.
+6. **Step 9** — Splunk Observability Cloud UI: **Metrics → Metric Explorer**, add filter `deployment.environment:ibm-mq-lab`, search `ibmmq`, chart `ORDER.REQ` depth. Mention out-of-box metrics (object status + publications; statistics off). Reference links on participant site **9c**.
+7. **Step 10** — stop consumer, load traffic, show depth spike in Splunk Observability Cloud and optionally in MQ console, restart consumer.
 
 ---
 
@@ -61,10 +61,10 @@ This session focuses on **IBM MQ infrastructure metrics** via `mq_otel` → Open
 | IBM full metric list | https://github.com/ibm-messaging/mq-metric-samples/blob/master/metrics.txt |
 | `mq_otel` naming & OTLP | https://github.com/ibm-messaging/mq-metric-samples/blob/master/cmd/mq_otel/README.md |
 | IBM $SYS publication metrics | https://www.ibm.com/docs/en/ibm-mq/latest?topic=trace-metrics-published-system-topics |
-| Splunk Metadata Catalog | https://help.splunk.com/en/splunk-observability-cloud/data-tools/metric-finder-and-metadata-catalogue |
-| Splunk Chart Builder | https://help.splunk.com/en/splunk-observability-cloud/create-dashboards-and-charts/create-charts/plot-metrics-and-events-using-chart-builder |
-| Splunk OTel Collector (production) | https://help.splunk.com/en/splunk-observability-cloud/manage-data/splunk-distribution-of-the-opentelemetry-collector/get-started-with-the-splunk-distribution-of-the-opentelemetry-collector/collector-for-linux/install-the-collector-for-linux-manual |
-| Splunk OTel Collector releases | https://github.com/signalfx/splunk-otel-collector/releases |
+| Splunk Observability Cloud Metadata Catalog | https://help.splunk.com/en/splunk-observability-cloud/data-tools/metric-finder-and-metadata-catalogue |
+| Splunk Observability Cloud Chart Builder | https://help.splunk.com/en/splunk-observability-cloud/create-dashboards-and-charts/create-charts/plot-metrics-and-events-using-chart-builder |
+| Splunk Observability Cloud OTel Collector (production) | https://help.splunk.com/en/splunk-observability-cloud/manage-data/splunk-distribution-of-the-opentelemetry-collector/get-started-with-the-splunk-distribution-of-the-opentelemetry-collector/collector-for-linux/install-the-collector-for-linux-manual |
+| Splunk Observability Cloud OTel Collector releases | https://github.com/signalfx/splunk-otel-collector/releases |
 
 Default lab exporter flags: `useObjectStatus: true`, `usePublications: true`, `useStatistics: false` (see `mq-otel-exporter/mq_otel.yaml`).
 

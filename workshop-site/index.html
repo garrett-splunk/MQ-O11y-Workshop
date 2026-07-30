@@ -14,7 +14,7 @@
         <span class="brand__tag">ibm mq lab</span>
       </a>
       <div class="header-actions">
-        <a class="header-doc-link" href="https://help.splunk.com/en/splunk-observability-cloud" target="_blank" rel="noopener">Splunk O11y docs</a>
+        <a class="header-doc-link" href="https://help.splunk.com/en/splunk-observability-cloud" target="_blank" rel="noopener">Splunk Observability Cloud docs</a>
         <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
           <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="4"/></svg>
           <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -34,17 +34,18 @@
         <li><a href="#concepts" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">—</span> Concepts 101</a></li>
         <li><a href="#commands" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">—</span> All commands</a></li>
         <li><a href="#prereqs" class="sidebar-tree__link" data-step="1"><span class="sidebar-tree__num">1</span> Prerequisites</a></li>
-        <li><a href="#step-splunk-token" class="sidebar-tree__link" data-step="2"><span class="sidebar-tree__num">2</span> Splunk token</a></li>
+        <li><a href="#step-splunk-token" class="sidebar-tree__link" data-step="2"><span class="sidebar-tree__num">2</span> Splunk Observability Cloud token</a></li>
         <li><a href="#step-secrets" class="sidebar-tree__link" data-step="3"><span class="sidebar-tree__num">3</span> Lab secrets</a></li>
         <li><a href="#step-collector" class="sidebar-tree__link" data-step="4"><span class="sidebar-tree__num">4</span> OTel collector</a></li>
         <li><a href="#step-start" class="sidebar-tree__link" data-step="5"><span class="sidebar-tree__num">5</span> Start stack</a></li>
         <li><a href="#step-verify" class="sidebar-tree__link" data-step="6"><span class="sidebar-tree__num">6</span> Verify stack</a></li>
         <li><a href="#step-topology" class="sidebar-tree__link" data-step="7"><span class="sidebar-tree__num">7</span> MQ topology &amp; console</a></li>
         <li><a href="#step-traffic" class="sidebar-tree__link" data-step="8"><span class="sidebar-tree__num">8</span> Generate traffic</a></li>
-        <li><a href="#step-metrics" class="sidebar-tree__link" data-step="9"><span class="sidebar-tree__num">9</span> MQ metrics in Splunk</a></li>
+        <li><a href="#step-metrics" class="sidebar-tree__link" data-step="9"><span class="sidebar-tree__num">9</span> MQ metrics in Splunk Observability Cloud</a></li>
         <li><a href="#step-failure" class="sidebar-tree__link" data-step="10"><span class="sidebar-tree__num">10</span> Depth failure demo</a></li>
         <li><a href="#troubleshoot" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">?</span> Troubleshooting</a></li>
         <li><a href="#phase-2" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">→</span> Phase 2</a></li>
+        <li><a href="#other-mqs" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">—</span> Other MQs</a></li>
         <li><a href="#wrapup" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">—</span> Teardown</a></li>
       </ul>
       <div class="sidebar-footer">
@@ -58,19 +59,19 @@
         <h1>IBM MQ metrics in Splunk Observability Cloud</h1>
         <p class="lead">
           Run a local IBM MQ queue manager, export <strong>queue and queue-manager metrics</strong> with
-          <code>mq_otel</code>, and view them in Splunk <strong>Metrics</strong>. Sample apps move messages so
+          <code>mq_otel</code>, and view them in Splunk Observability Cloud <strong>Metrics</strong>. Sample apps move messages so
           queue depth changes; this lab does <em>not</em> cover APM traces or Log Observer in the exercises.
         </p>
         <div class="callout callout--concept">
           <p class="callout__title">What you will do</p>
-          <p>Clone the repo, add your Splunk ingest token, start Docker Compose, run the verification script step by step, generate traffic, and chart IBM MQ metrics (especially <code>ORDER.REQ</code> depth).</p>
+          <p>Clone the repo, add your Splunk Observability Cloud ingest token, start Docker Compose, run the verification script step by step, generate traffic, and chart IBM MQ metrics (especially <code>ORDER.REQ</code> depth).</p>
         </div>
       </header>
 
       <section id="concepts">
-        <h2>Concepts 101 — MQ metrics and O11y</h2>
+        <h2>Concepts 101 — MQ metrics and Splunk Observability Cloud</h2>
         <table class="info-table">
-          <thead><tr><th>IBM MQ idea</th><th>In Splunk O11y</th><th>This lab</th></tr></thead>
+          <thead><tr><th>IBM MQ idea</th><th>In Splunk Observability Cloud</th><th>This lab</th></tr></thead>
           <tbody>
             <tr><td>Queue depth</td><td>Metric (gauge)</td><td>Object status from <code>mq_otel</code> (<code>useObjectStatus</code>)</td></tr>
             <tr><td>PUT / GET throughput</td><td>Metric (counter)</td><td>Requires statistics collection in MQ + <code>useStatistics</code> in exporter — <strong>off</strong> in this lab’s default config</td></tr>
@@ -86,7 +87,7 @@
           <div class="flow-arrow"><span>→</span></div>
           <div class="flow-node"><div class="flow-title">OTel Collector</div><div class="flow-sub">OTLP :4317</div></div>
           <div class="flow-arrow"><span>→</span></div>
-          <div class="flow-node"><div class="flow-title">Splunk O11y</div><div class="flow-sub">Metrics</div></div>
+          <div class="flow-node"><div class="flow-title">Splunk Observability Cloud</div><div class="flow-sub">Metrics</div></div>
         </div>
         <p class="muted">Producer and consumer apps drive message flow so queue depth moves; metrics come from <code>mq_otel</code>, not from the apps directly.</p>
         <table class="info-table">
@@ -153,8 +154,8 @@ git clone https://github.com/garrett-splunk/MQ-O11y-Workshop.git .</code></pre>
 
       <section id="step-splunk-token">
         <div class="step-meta"><span class="step-badge">Step 2</span><span class="step-time">~10 min</span></div>
-        <h2>Splunk ingest token (<code>.env.splunk</code>)</h2>
-        <p>Only the OpenTelemetry Collector reads this file. It forwards <strong>metrics</strong> to Splunk using your token and realm URLs.</p>
+        <h2>Splunk Observability Cloud ingest token (<code>.env.splunk</code>)</h2>
+        <p>Only the OpenTelemetry Collector reads this file. It forwards <strong>metrics</strong> to Splunk Observability Cloud using your token and realm URLs.</p>
 
         <div class="callout callout--info">
           <p class="callout__title">Workshop token</p>
@@ -170,7 +171,7 @@ cp .env.splunk.example .env.splunk</code></pre>
 
         <h3>2b — Get the token value</h3>
         <p><strong>Option A — Facilitator-led workshop:</strong> Copy the ingest token from the workshop materials. Note the realm and ingest URLs if the facilitator lists them (often US1).</p>
-        <p><strong>Option B — Self-paced:</strong> Create your own token in Splunk O11y:</p>
+        <p><strong>Option B — Self-paced:</strong> Create your own token in Splunk Observability Cloud:</p>
         <ol>
           <li>Sign in to <strong>Splunk Observability Cloud</strong> (note your realm, e.g. <code>us1</code> in the URL).</li>
           <li>Open <strong>Organization Settings</strong> (gear) → <strong>Access Tokens</strong>.</li>
@@ -245,16 +246,16 @@ cp secrets/mqAppPassword.example.txt secrets/mqAppPassword.txt</code></pre>
 
       <section id="step-collector">
         <div class="step-meta"><span class="step-badge">Step 4</span><span class="step-time">~5 min · read-only</span></div>
-        <h2>OpenTelemetry Collector → Splunk O11y</h2>
-        <p>You do <strong>not</strong> install the collector manually in this lab — <code>docker compose up</code> (Step 5) starts it for you. This step shows <em>what</em> gets deployed and <em>which files</em> define the Splunk export path for IBM MQ metrics.</p>
+        <h2>OpenTelemetry Collector → Splunk Observability Cloud</h2>
+        <p>You do <strong>not</strong> install the collector manually in this lab — <code>docker compose up</code> (Step 5) starts it for you. This step shows <em>what</em> gets deployed and <em>which files</em> define the Splunk Observability Cloud export path for IBM MQ metrics.</p>
 
         <div class="callout callout--info">
           <p class="callout__title">Splunk Distribution vs this lab</p>
-          <p>For production, Splunk publishes the <strong>Splunk Distribution of the OpenTelemetry Collector</strong> as <code>quay.io/signalfx/splunk-otel-collector</code> (see <a href="https://help.splunk.com/en/splunk-observability-cloud/manage-data/splunk-distribution-of-the-opentelemetry-collector/get-started-with-the-splunk-distribution-of-the-opentelemetry-collector/collector-for-linux/install-the-collector-for-linux-manual" target="_blank" rel="noopener">Splunk collector install docs</a>). This lab uses the upstream <code>opentelemetry-collector-contrib</code> image with the built-in <code>signalfx</code> exporter — the same ingest token and realm from <code>.env.splunk</code> — so learners focus on MQ metrics, not collector packaging.</p>
+          <p>For production, the <strong>Splunk Distribution of the OpenTelemetry Collector</strong> is published as <code>quay.io/signalfx/splunk-otel-collector</code> (see <a href="https://help.splunk.com/en/splunk-observability-cloud/manage-data/splunk-distribution-of-the-opentelemetry-collector/get-started-with-the-splunk-distribution-of-the-opentelemetry-collector/collector-for-linux/install-the-collector-for-linux-manual" target="_blank" rel="noopener">Splunk Observability Cloud collector install docs</a>). This lab uses the upstream <code>opentelemetry-collector-contrib</code> image with the built-in <code>signalfx</code> exporter — the same ingest token and realm from <code>.env.splunk</code> — so learners focus on MQ metrics, not collector packaging.</p>
         </div>
 
         <h3>4a — How Compose runs the collector</h3>
-        <p>From <code>docker-compose.yml</code> in the repo root. The service mounts the YAML config, loads your Splunk token from <code>.env.splunk</code>, and exposes OTLP ports for <code>mq_otel</code> and the sample apps.</p>
+        <p>From <code>docker-compose.yml</code> in the repo root. The service mounts the YAML config, loads your Splunk Observability Cloud token from <code>.env.splunk</code>, and exposes OTLP ports for <code>mq_otel</code> and the sample apps.</p>
         <div class="code-block">
           <div class="code-block__header"><span>docker-compose.yml</span><button class="btn-copy" data-copy="snippet-compose-collector">Copy</button></div>
           <pre><code id="snippet-compose-collector">otel-collector:
@@ -272,10 +273,10 @@ cp secrets/mqAppPassword.example.txt secrets/mqAppPassword.txt</code></pre>
     - "4318:4318"   # OTLP HTTP — order-producer / order-consumer
     - "13133:13133" # collector health (verify-stack.sh)</code></pre>
         </div>
-        <p class="muted">Production alternative (not used in this lab): <code>quay.io/signalfx/splunk-otel-collector:&lt;version&gt;</code> — pin a semver tag from <a href="https://github.com/signalfx/splunk-otel-collector/releases" target="_blank" rel="noopener">Splunk OTel Collector releases</a>.</p>
+        <p class="muted">Production alternative (not used in this lab): <code>quay.io/signalfx/splunk-otel-collector:&lt;version&gt;</code> — pin a semver tag from <a href="https://github.com/signalfx/splunk-otel-collector/releases" target="_blank" rel="noopener">Splunk Observability Cloud OTel Collector releases</a>.</p>
 
-        <h3>4b — Metrics pipeline config (Splunk export)</h3>
-        <p>From <code>collector/otelcol-config.yaml</code>. <code>mq_otel</code> sends OTLP metrics to port <code>4317</code>; the collector adds <code>deployment.environment:ibm-mq-lab</code> (and <code>deployment.environment.name</code>) on every metric resource before export to Splunk.</p>
+        <h3>4b — Metrics pipeline config (Splunk Observability Cloud export)</h3>
+        <p>From <code>collector/otelcol-config.yaml</code>. <code>mq_otel</code> sends OTLP metrics to port <code>4317</code>; the collector adds <code>deployment.environment:ibm-mq-lab</code> (and <code>deployment.environment.name</code>) on every metric resource before export to Splunk Observability Cloud.</p>
         <div class="code-block">
           <div class="code-block__header"><span>collector/otelcol-config.yaml</span><button class="btn-copy" data-copy="snippet-collector-yaml">Copy</button></div>
           <pre><code id="snippet-collector-yaml">receivers:
@@ -323,8 +324,8 @@ service:
         <h3>4c — Data flow recap</h3>
         <ol>
           <li><code>mq-otel-exporter</code> → OTLP gRPC → <code>otel-collector:4317</code></li>
-          <li>Collector <code>signalfx</code> exporter → Splunk ingest URL from <code>.env.splunk</code></li>
-          <li>Chart metrics in Splunk O11y (Step 9) with filter <code>deployment.environment:ibm-mq-lab</code></li>
+          <li>Collector <code>signalfx</code> exporter → Splunk Observability Cloud ingest URL from <code>.env.splunk</code></li>
+          <li>Chart metrics in Splunk Observability Cloud (Step 9) with filter <code>deployment.environment:ibm-mq-lab</code></li>
         </ol>
       </section>
 
@@ -428,9 +429,9 @@ curl -sf -X POST http://localhost:8080/orders \
       </section>
 
       <section id="step-topology">
-        <div class="step-meta"><span class="step-badge">Step 7</span><span class="step-time">~10 min</span></div>
+        <div class="step-meta"><span class="step-badge">Step 7</span><span class="step-time">~5 min · optional console</span></div>
         <h2>MQ topology &amp; web console</h2>
-        <p>Before generating traffic, confirm the queues and channel that <code>mq_otel</code> monitors match what you expect. The IBM MQ web console is optional but useful for seeing queue depth live on the broker.</p>
+        <p>Confirm the queues and channel that <code>mq_otel</code> monitors (7a). The IBM MQ web console (7b) is <strong>optional</strong> — useful for live queue depth on the broker, but not required to finish the lab.</p>
 
         <div class="callout callout--info">
           <p class="callout__title">MQ console login reminder</p>
@@ -470,28 +471,10 @@ curl -sf -X POST http://localhost:8080/orders \
           <img class="screenshot__img" src="screenshots/mq-workshop-select-qm1.png" alt="IBM MQ console home showing Manage QM1 tile with queue depth summary" loading="lazy" width="640" height="360" />
           <figcaption class="screenshot__caption">Select <strong>Manage QM1</strong> to open the queue manager dashboard.</figcaption>
         </figure>
-        <ol start="5">
-          <li>On the QM1 <strong>Overview</strong>, review active queues, connections, and message rates. Note <strong>Deepest queues</strong> — <code>ORDER.REQ</code> appears here when messages are flowing (example below shows depth during lab traffic).</li>
-          <li>Open the <strong>Queues</strong> tab to browse all queues. Find <code>ORDER.REQ</code> and <code>ORDER.RESP</code>; click <code>ORDER.REQ</code> for <strong>Current depth</strong> (often <code>0</code> before Step 8).</li>
-          <li>Open the <strong>Channels</strong> tab (or <strong>Applications</strong> / channel views depending on MQ version) and confirm <code>DEV.APP.SVRCONN</code> is defined — the channel producer, consumer, and <code>mq_otel</code> use to connect.</li>
-        </ol>
-        <figure class="screenshot screenshot--terminal">
-          <img class="screenshot__img" src="screenshots/mq-workshop-active-queues.png" alt="QM1 overview showing active queues, connected applications, and ORDER.REQ in deepest queues" loading="lazy" width="720" height="405" />
-          <figcaption class="screenshot__caption">After opening QM1 — <strong>Overview</strong> shows active queues, connected applications, and <code>ORDER.REQ</code> under deepest queues when traffic is running.</figcaption>
-        </figure>
+        <p class="muted">From the QM1 dashboard you can explore <strong>Overview</strong>, <strong>Queues</strong>, and <strong>Channels</strong> on your own — that is optional and not required to complete the lab.</p>
         <div class="callout callout--warning">
           <p class="callout__title">Console not loading?</p>
           <p>Confirm port <code>9443</code> is mapped (<code>docker compose ps</code>). On first start, wait until <code>mq</code> is <strong>healthy</strong>, then refresh. Use <code>https://</code> (not <code>http://</code>).</p>
-        </div>
-
-        <h3>7c — Optional checks before Splunk</h3>
-        <ul>
-          <li><strong>Queue manager status</strong> — from the QM1 summary, confirm the queue manager is <strong>Running</strong>.</li>
-          <li><strong>Compare with metrics</strong> — after Step 8, queue depth in the console should trend the same way as the Splunk metric for <code>ORDER.REQ</code> (Step 9), allowing for the ~15s <code>mq_otel</code> poll interval.</li>
-        </ul>
-        <div class="callout callout--tip">
-          <p class="callout__title">Why use the console in this lab?</p>
-          <p>The console shows <em>current</em> MQ state on the broker. Splunk shows <em>history and alerting</em>. Phase 1 teaches the Splunk path; the console helps you trust that depth changes you chart in O11y are real.</p>
         </div>
       </section>
 
@@ -507,22 +490,22 @@ curl -sf -X POST http://localhost:8080/orders \
   -H "X-Correlation-Id: lab-order-1" \
   -d '{"productId":"SKU-200","quantity":3}'</code></pre>
         </div>
-        <h3>Sustained load (recommended before opening Splunk Metrics)</h3>
+        <h3>Sustained load (recommended before opening Splunk Observability Cloud Metrics)</h3>
         <div class="code-block">
           <div class="code-block__header"><span>load-traffic.ts</span><button class="btn-copy" data-copy="cmd-7load">Copy</button></div>
           <pre><code id="cmd-7load">cd ~/projects/ibm-mq-o11y-lab
 npm install
 npm run load-traffic -- 30 400</code></pre>
         </div>
-        <p class="muted">Arguments: <code>30</code> messages, <code>400</code> ms between sends. Wait 1–2 minutes for metrics to appear in Splunk.</p>
+        <p class="muted">Arguments: <code>30</code> messages, <code>400</code> ms between sends. Wait 1–2 minutes for metrics to appear in Splunk Observability Cloud.</p>
       </section>
 
       <section id="step-metrics">
         <div class="step-meta"><span class="step-badge">Step 9</span><span class="step-time">~15 min</span></div>
-        <h2>View IBM MQ metrics in Splunk</h2>
-        <p>After Step 8, allow 1–2 minutes for ingest. All series from this lab use the <code>ibmmq</code> prefix (see <code>metaprefix</code> in <code>mq-otel-exporter/mq_otel.yaml</code>) and are tagged with <code>deployment.environment:ibm-mq-lab</code>.</p>
+        <h2>View IBM MQ metrics in Splunk Observability Cloud</h2>
+        <p>After Step 8, allow 1–2 minutes for ingest. MQ metric series use the <code>ibmmq</code> prefix (from the exporter’s metric definitions) and are tagged with <code>deployment.environment:ibm-mq-lab</code>.</p>
 
-        <h3>9a — Find metrics in the Splunk O11y UI</h3>
+        <h3>9a — Find metrics in the Splunk Observability Cloud UI</h3>
         <p>All IBM MQ metrics from this lab are tagged <code>deployment.environment:ibm-mq-lab</code>. Start with Metric Explorer and apply that filter first.</p>
 
         <h4>Recommended — Metrics → Metric Explorer</h4>
@@ -535,6 +518,10 @@ npm run load-traffic -- 30 400</code></pre>
           <li>Optional: add another filter for queue name <code>ORDER.REQ</code> when that dimension appears on the series.</li>
           <li>Set the time range to <strong>Past 15 minutes</strong> (or <strong>Past 1 hour</strong> while debugging).</li>
         </ol>
+        <figure class="screenshot">
+          <img class="screenshot__img" src="screenshots/mq-workshop-metric-explorer-ibmmq.png" alt="Splunk Observability Cloud Metric Explorer showing ibmmq queue depth metrics filtered by deployment.environment ibm-mq-lab" loading="lazy" width="362" height="646" />
+          <figcaption class="screenshot__caption">Metric Explorer with <code>deployment.environment:ibm-mq-lab</code> and <code>ibmmq</code> metrics — for example <code>ibmmq.queue.depth</code> on <code>ORDER.REQ</code> and <code>ORDER.RESP</code>.</figcaption>
+        </figure>
         <div class="callout callout--info">
           <p class="callout__title">Lab environment filter</p>
           <p>Always include <code>deployment.environment:ibm-mq-lab</code> so you only see metrics from this workshop stack, not other environments in your org.</p>
@@ -546,7 +533,7 @@ npm run load-traffic -- 30 400</code></pre>
           <li>Search for <code>deployment.environment:ibm-mq-lab</code> or a metric name containing <code>ibmmq</code>.</li>
           <li>Review dimensions and use <strong>View in chart</strong> to open Chart Builder.</li>
         </ol>
-        <p class="muted">Splunk docs: <a href="https://help.splunk.com/en/splunk-observability-cloud/data-tools/metric-finder-and-metadata-catalogue" target="_blank" rel="noopener">Metric Finder and Metadata Catalog</a></p>
+        <p class="muted">Splunk Observability Cloud docs: <a href="https://help.splunk.com/en/splunk-observability-cloud/data-tools/metric-finder-and-metadata-catalogue" target="_blank" rel="noopener">Metric Finder and Metadata Catalog</a></p>
 
         <h4>Option 3 — Create a chart (Chart Builder)</h4>
         <ol>
@@ -556,11 +543,15 @@ npm run load-traffic -- 30 400</code></pre>
           <li>Add filter <code>deployment.environment:ibm-mq-lab</code>.</li>
           <li>Add a queue filter for <code>ORDER.REQ</code> when charting depth.</li>
         </ol>
-        <p class="muted">Splunk docs: <a href="https://help.splunk.com/en/splunk-observability-cloud/create-dashboards-and-charts/create-charts/create-charts" target="_blank" rel="noopener">Create charts</a> · <a href="https://help.splunk.com/en/splunk-observability-cloud/create-dashboards-and-charts/create-charts/plot-metrics-and-events-using-chart-builder" target="_blank" rel="noopener">Plot metrics with Chart Builder</a></p>
+        <figure class="screenshot">
+          <img class="screenshot__img" src="screenshots/mq-workshop-chart-ibmmq-queue-depth.png" alt="Splunk Observability Cloud Chart Builder plotting ibmmq.queue.depth for ORDER.REQ with deployment.environment ibm-mq-lab filter" loading="lazy" width="689" height="578" />
+          <figcaption class="screenshot__caption">Chart Builder — <code>ibmmq.queue.depth</code> for <code>ORDER.REQ</code> with <code>deployment.environment:ibm-mq-lab</code>.</figcaption>
+        </figure>
+        <p class="muted">Splunk Observability Cloud docs: <a href="https://help.splunk.com/en/splunk-observability-cloud/create-dashboards-and-charts/create-charts/create-charts" target="_blank" rel="noopener">Create charts</a> · <a href="https://help.splunk.com/en/splunk-observability-cloud/create-dashboards-and-charts/create-charts/plot-metrics-and-events-using-chart-builder" target="_blank" rel="noopener">Plot metrics with Chart Builder</a></p>
 
         <div class="callout callout--tip">
-          <p class="callout__title">Metric naming in Splunk</p>
-          <p>The exporter emits OpenTelemetry names such as <code>ibmmq.queue.depth</code>. Splunk may display dots or underscores — use Metric Explorer with the <code>ibmmq</code> prefix and <code>deployment.environment:ibm-mq-lab</code> filter rather than guessing the exact string.</p>
+          <p class="callout__title">Metric naming in Splunk Observability Cloud</p>
+          <p>The exporter emits OpenTelemetry names such as <code>ibmmq.queue.depth</code>. Splunk Observability Cloud may display dots or underscores — use Metric Explorer with the <code>ibmmq</code> prefix and <code>deployment.environment:ibm-mq-lab</code> filter rather than guessing the exact string.</p>
         </div>
 
         <h3>9b — Metrics you get out of the box in this lab</h3>
@@ -600,7 +591,7 @@ npm run load-traffic -- 30 400</code></pre>
             </tr>
           </tbody>
         </table>
-        <p>Representative OpenTelemetry-style names (from IBM’s exporter; your Splunk UI may vary slightly):</p>
+        <p>Representative OpenTelemetry-style names (from IBM’s exporter; your Splunk Observability Cloud UI may vary slightly):</p>
         <ul>
           <li><code>ibmmq.queue.depth</code> — current depth (filter to queue <code>ORDER.REQ</code>)</li>
           <li><code>ibmmq.qmgr.status</code> — queue manager status enum</li>
@@ -637,7 +628,7 @@ npm run load-traffic -- 30 400</code></pre>
       <section id="step-failure">
         <div class="step-meta"><span class="step-badge">Step 10</span><span class="step-time">~10 min</span></div>
         <h2>Failure demo — queue depth (metrics only)</h2>
-        <p>Stop the consumer so messages accumulate on <code>ORDER.REQ</code>; watch depth rise in Splunk Metrics.</p>
+        <p>Stop the consumer so messages accumulate on <code>ORDER.REQ</code>; watch depth rise in Splunk Observability Cloud Metrics.</p>
         <ol>
           <li>
             <strong>Stop the consumer</strong>
@@ -647,7 +638,7 @@ npm run load-traffic -- 30 400</code></pre>
             <strong>Send load</strong>
             <div class="code-block"><pre><code>npm run load-traffic -- 25 200</code></pre></div>
           </li>
-          <li><strong>In Splunk O11y</strong> — <strong>Metrics</strong> → <strong>Metric Explorer</strong>, filter <code>deployment.environment:ibm-mq-lab</code>, chart <code>ORDER.REQ</code> depth (Step 9).</li>
+          <li><strong>In Splunk Observability Cloud</strong> — <strong>Metrics</strong> → <strong>Metric Explorer</strong>, filter <code>deployment.environment:ibm-mq-lab</code>, chart <code>ORDER.REQ</code> depth (Step 9).</li>
           <li><strong>Optional — MQ console</strong> — refresh <code>ORDER.REQ</code> in the web console (Step 7; login <code>admin</code> / <code>passw0rd</code>) to see depth climb live on the broker.</li>
           <li>
             <strong>Restore processing</strong>
@@ -661,13 +652,31 @@ npm run load-traffic -- 30 400</code></pre>
         <h2>Troubleshooting</h2>
         <div class="trouble-grid">
           <details open>
-            <summary><code>Cannot connect</code> / <code>MQRC_UNKNOWN_CHANNEL_NAME</code> / <code>mq-otel-exporter</code> Restarting</summary>
-            <p>The metrics exporter and apps connect on channel <code>DEV.APP.SVRCONN</code>. If an old MQ data volume was created without dev objects, that channel may be missing.</p>
+            <summary>I see <code>http.client.duration</code> (or “client duration”) but no <code>ibmmq</code> metrics</summary>
+            <p>That usually means <strong>Splunk Observability Cloud is receiving app OTLP metrics</strong> (order-producer / order-consumer) but <strong>IBM MQ metrics are not arriving</strong>. The collector tags <em>all</em> incoming OTLP metrics with <code>deployment.environment:ibm-mq-lab</code>, so the environment filter still matches — it does not mean MQ metrics are present.</p>
+            <p>In Metric Explorer use a <strong>colon</strong>, not <code>=</code>: <code>deployment.environment:ibm-mq-lab</code> (not <code>deployment.environemtn=...</code>).</p>
+            <p>Then search metric names for the prefix <code>ibmmq</code> (for example <code>ibmmq.queue.depth</code>).</p>
+            <p><strong>Check the MQ metrics exporter:</strong> it runs <strong>inside the MQ container</strong> (bindings mode). Look for a stable “Connected to queue manager” line — not a crash loop:</p>
+            <div class="code-block"><pre><code>docker compose logs mq 2>&1 | grep -i mq_otel
+docker compose logs mq --tail 30</code></pre></div>
+            <p>If you see <code>MQRC_NO_MSG_AVAILABLE [2033]</code> about <strong>30 seconds</strong> after <code>Connected to queue manager</code>, the exporter is usually trying publication metadata discovery while <code>usePublications: false</code>. Ensure <code>metaprefix</code> is <strong>empty</strong> in <code>mq-otel-exporter/mq_otel.yaml</code> (a non-empty prefix still triggers that path and fatals after the 30s wait).</p>
+            <p>Rebuild on Apple Silicon with explicit amd64:</p>
+            <div class="code-block"><pre><code>docker buildx build --platform linux/amd64 -f mq-otel-exporter/Dockerfile \
+  -t ibm-mq-o11y-lab-mq-otel-exporter:latest mq-otel-exporter
+docker compose build --no-cache mq
+docker compose up -d --force-recreate mq otel-collector</code></pre></div>
+            <p>Wait 1–2 minutes, then confirm the collector is receiving more than a handful of metric data points: <code>docker compose logs otel-collector 2>&1 | grep MetricsExporter | tail -5</code> (IBM MQ metrics push many series per scrape, not just 3).</p>
+          </details>
+          <details>
+            <summary><code>Cannot connect</code> / <code>MQRC_UNKNOWN_CHANNEL_NAME</code> / MQ metrics exporter restarting</summary>
+            <p>Apps connect on channel <code>DEV.APP.SVRCONN</code>. The metrics exporter uses bindings inside the <code>mq</code> service and dedicated reply queues <code>MQOTEL.REPLY</code> / <code>MQOTEL.REPLY2</code> (see <code>mq/20-lab-connect.mqsc</code>).</p>
             <p><strong>Fix:</strong> rebuild and recreate the stack so lab MQSC runs on startup:</p>
             <div class="code-block"><pre><code>cd ~/projects/ibm-mq-o11y-lab
 git pull
+docker buildx build --platform linux/amd64 -f mq-otel-exporter/Dockerfile \
+  -t ibm-mq-o11y-lab-mq-otel-exporter:latest mq-otel-exporter
 docker compose up --build -d
-docker compose logs mq-otel-exporter --tail 20</code></pre></div>
+docker compose logs mq --tail 30</code></pre></div>
             <p>If it still fails, reset the queue manager volume (destroys local MQ data):</p>
             <div class="code-block"><pre><code>docker compose down -v
 docker compose up --build -d</code></pre></div>
@@ -680,8 +689,8 @@ docker compose up --build -d</code></pre></div>
 docker compose up -d order-producer order-consumer</code></pre></div>
           </details>
           <details>
-            <summary>No IBM MQ metrics in Splunk</summary>
-            <p>Verify <code>.env.splunk</code> token and realm URLs. Run <code>docker compose up -d otel-collector</code>. Check <code>docker compose logs mq-otel-exporter</code> and <code>docker compose logs otel-collector</code>. Ensure <code>secrets/mqAppPassword.txt</code> exists.</p>
+            <summary>No IBM MQ metrics in Splunk Observability Cloud</summary>
+            <p>Verify <code>.env.splunk</code> token and realm URLs. Run <code>docker compose up -d otel-collector mq</code>. Check <code>docker compose logs mq</code> for <code>mq_otel</code> and <code>docker compose logs otel-collector</code> for ingest errors.</p>
           </details>
           <details>
             <summary><code>verify-stack.sh</code> fails on health checks</summary>
@@ -692,7 +701,7 @@ docker compose up -d order-producer order-consumer</code></pre></div>
             <p>Run <code>npm run load-traffic</code> with consumer <strong>stopped</strong> (Step 10), or confirm producer returns <code>202 accepted</code>.</p>
           </details>
           <details>
-            <summary>Wrong Splunk org / realm</summary>
+            <summary>Wrong Splunk Observability Cloud org / realm</summary>
             <p>Match <code>SPLUNK_INGEST_URL</code> to the realm you use to sign in (us0, us1, eu0, etc.).</p>
           </details>
         </div>
@@ -700,11 +709,11 @@ docker compose up -d order-producer order-consumer</code></pre></div>
 
       <section id="phase-2">
         <h2>Phase 2 — What could come next</h2>
-        <p class="lead" style="font-size:1rem;margin-bottom:1rem;">This workshop (Phase 1) focuses on <strong>IBM MQ infrastructure metrics</strong> in Splunk Metrics. The repo already contains pieces for a fuller observability story — Phase 2 would turn those on and add guided exercises.</p>
+        <p class="lead" style="font-size:1rem;margin-bottom:1rem;">This workshop (Phase 1) focuses on <strong>IBM MQ infrastructure metrics</strong> in Splunk Observability Cloud Metrics. The repo already contains pieces for a fuller observability story — Phase 2 would turn those on and add guided exercises.</p>
 
         <div class="callout callout--concept">
           <p class="callout__title">Phase 1 recap</p>
-          <p><code>mq_otel</code> → OpenTelemetry Collector → Splunk <strong>Metrics</strong> · queue depth on <code>ORDER.REQ</code> · environment <code>ibm-mq-lab</code></p>
+          <p><code>mq_otel</code> → OpenTelemetry Collector → Splunk Observability Cloud <strong>Metrics</strong> · queue depth on <code>ORDER.REQ</code> · environment <code>ibm-mq-lab</code></p>
         </div>
 
         <h3>Potential Phase 2 modules</h3>
@@ -713,8 +722,8 @@ docker compose up -d order-producer order-consumer</code></pre></div>
           <tbody>
             <tr>
               <td><strong>APM &amp; end-to-end traces</strong></td>
-              <td>Place an order via <code>POST /orders</code> and follow one request from <code>order-producer</code> → IBM MQ → <code>order-consumer</code> in Splunk APM. Tie spans together with correlation IDs.</td>
-              <td>Node services export OTLP traces; collector <code>traces</code> pipeline → Splunk ingest</td>
+              <td>Place an order via <code>POST /orders</code> and follow one request from <code>order-producer</code> → IBM MQ → <code>order-consumer</code> in Splunk Observability Cloud APM. Tie spans together with correlation IDs.</td>
+              <td>Node services export OTLP traces; collector <code>traces</code> pipeline → Splunk Observability Cloud ingest</td>
             </tr>
             <tr>
               <td><strong>IBM MQ native tracing</strong></td>
@@ -722,7 +731,7 @@ docker compose up -d order-producer order-consumer</code></pre></div>
               <td><code>mq/mqtracingexit.conf</code>, <code>mq-tracing-setup</code> service, <code>scripts/mq-tracing-enable.sh</code></td>
             </tr>
             <tr>
-              <td><strong>Logs in Splunk</strong></td>
+              <td><strong>Logs in Splunk Observability Cloud</strong></td>
               <td>Search structured JSON logs from producer/consumer in Log Observer; filter by <code>service.name</code> and correlation ID.</td>
               <td>Shared logger + collector <code>logs</code> pipeline (<code>splunk_hec/o11y</code> exporter)</td>
             </tr>
@@ -734,11 +743,11 @@ docker compose up -d order-producer order-consumer</code></pre></div>
             <tr>
               <td><strong>Detectors &amp; dashboards</strong></td>
               <td>Build a detector when <code>ORDER.REQ</code> depth exceeds a threshold; assemble an MQ ops dashboard (depth, channel status, qmgr health).</td>
-              <td>Metrics from Phase 1; Splunk Chart Builder / detectors (Step 9)</td>
+              <td>Metrics from Phase 1; Splunk Observability Cloud Chart Builder / detectors (Step 9)</td>
             </tr>
             <tr>
               <td><strong>Production collector path</strong></td>
-              <td>Compare lab <code>opentelemetry-collector-contrib</code> with Splunk’s distribution image and a hardened deploy pattern.</td>
+              <td>Compare lab <code>opentelemetry-collector-contrib</code> with the Splunk Distribution collector image and a hardened deploy pattern.</td>
               <td>Step 4 reference; swap to <code>quay.io/signalfx/splunk-otel-collector</code> in Compose</td>
             </tr>
           </tbody>
@@ -754,7 +763,7 @@ docker compose up -d order-producer order-consumer</code></pre></div>
           <div class="flow-arrow"><span>→</span></div>
           <div class="flow-node"><div class="flow-title">OTel Collector</div><div class="flow-sub">metrics · traces · logs</div></div>
           <div class="flow-arrow"><span>→</span></div>
-          <div class="flow-node"><div class="flow-title">Splunk O11y</div><div class="flow-sub">Metrics · APM · Log Observer</div></div>
+          <div class="flow-node"><div class="flow-title">Splunk Observability Cloud</div><div class="flow-sub">Metrics · APM · Log Observer</div></div>
         </div>
 
         <h3>Suggested Phase 2 workshop shape (~60–90 min)</h3>
@@ -770,6 +779,119 @@ docker compose up -d order-producer order-consumer</code></pre></div>
         <p class="muted">Phase 2 is not required to get value from Phase 1. Treat it as a roadmap for teams moving from <em>“can we see MQ?”</em> to <em>“can we debug a message path under load?”</em></p>
       </section>
 
+      <section id="other-mqs">
+        <h2>Other message brokers — is this setup similar?</h2>
+        <p class="lead" style="font-size:1rem;margin-bottom:1rem;">The <strong>observability pattern</strong> in this lab transfers well to other brokers. The <strong>broker-specific pieces</strong> (exporter, metric names, and topology) do not — you swap those, keep the collector → Splunk Observability Cloud path.</p>
+
+        <div class="callout callout--concept">
+          <p class="callout__title">What stays the same (any broker)</p>
+          <ul>
+            <li><strong>Apps</strong> export OTLP traces/logs (and sometimes metrics) from producer and consumer services.</li>
+            <li>An <strong>OpenTelemetry Collector</strong> receives telemetry, adds resource tags such as <code>deployment.environment</code>, and forwards to Splunk Observability Cloud (SignalFx metrics, OTLP traces, HEC logs).</li>
+            <li><strong>Ops metrics</strong> (queue depth, backlog, connection/channel health) come from a <em>broker-side</em> exporter or scrape target — not from app code alone.</li>
+            <li>In Splunk Observability Cloud you still filter by environment, then search by a <strong>metric prefix or naming convention</strong> (<code>ibmmq.*</code> here; <code>rabbitmq.*</code> or Prometheus names for RabbitMQ, etc.).</li>
+          </ul>
+        </div>
+
+        <h3>RabbitMQ — closest cousin, different wiring</h3>
+        <p>RabbitMQ is the broker most often compared to IBM MQ: both are traditional message <em>queues</em> with publish/consume semantics. The Splunk Observability Cloud journey is similar; the integration points differ.</p>
+        <table class="info-table">
+          <thead><tr><th>Aspect</th><th>This lab (IBM MQ)</th><th>Typical RabbitMQ + Splunk Observability Cloud</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Broker metrics source</strong></td>
+              <td>IBM <code>mq_otel</code> (from <a href="https://github.com/ibm-messaging/mq-metric-samples" target="_blank" rel="noopener">mq-metric-samples</a>) → OTLP/gRPC</td>
+              <td><code>rabbitmq_prometheus</code> plugin (scrape <code>:15692/metrics</code>) or community OTel receivers → often <strong>Prometheus pull</strong> into the collector</td>
+            </tr>
+            <tr>
+              <td><strong>Metric naming</strong></td>
+              <td><code>ibmmq.queue.depth</code>, <code>ibmmq.channel.*</code>, …</td>
+              <td><code>rabbitmq_queue_messages</code>, <code>rabbitmq_connections</code>, … (Prometheus-style names)</td>
+            </tr>
+            <tr>
+              <td><strong>Topology language</strong></td>
+              <td>Queue manager, queues, channels, SVRCONN</td>
+              <td>Virtual host, exchange, queue, binding, connection</td>
+            </tr>
+            <tr>
+              <td><strong>Backlog signal</strong></td>
+              <td>Queue depth on named queues (e.g. <code>ORDER.REQ</code>)</td>
+              <td>Messages ready / unacked on queues (same idea, different metric names)</td>
+            </tr>
+            <tr>
+              <td><strong>Collector config</strong></td>
+              <td>OTLP receiver ← <code>mq_otel</code></td>
+              <td>Often <code>prometheus</code> receiver ← RabbitMQ scrape endpoint, then same <code>signalfx</code> exporter to Splunk Observability Cloud</td>
+            </tr>
+            <tr>
+              <td><strong>Native tracing</strong></td>
+              <td>MQ OpenTelemetry tracing exit (Phase 2 in this repo)</td>
+              <td>Usually app-level tracing only (AMQP client libraries); no direct IBM-style “tracing exit”</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="muted">Bottom line for RabbitMQ: reuse this lab’s <strong>collector + Splunk Observability Cloud + app OTLP</strong> layout; replace <code>mq_otel</code> with a <strong>Prometheus scrape of RabbitMQ</strong> (or a RabbitMQ-aware OTel receiver) and learn Rabbit’s metric names instead of <code>ibmmq.*</code>.</p>
+
+        <h3>Other brokers you may encounter</h3>
+        <table class="info-table">
+          <thead><tr><th>System</th><th>Category</th><th>Metrics pattern vs this lab</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Apache Kafka</strong></td>
+              <td>Distributed log / streaming</td>
+              <td><em>Similar pipeline</em>, different semantics: topics &amp; partitions, <strong>consumer lag</strong> (not queue depth). Common: JMX exporter, <code>kafka_exporter</code>, Burrow, or managed-cloud metrics → Prometheus/OTel → Splunk Observability Cloud.</td>
+            </tr>
+            <tr>
+              <td><strong>Apache ActiveMQ / Artemis</strong></td>
+              <td>JMS-style queues &amp; topics</td>
+              <td><em>Quite similar</em> to RabbitMQ: JMX or Prometheus plugin → scrape → collector. JMS apps + broker metrics, like MQ + MQI.</td>
+            </tr>
+            <tr>
+              <td><strong>Apache Pulsar</strong></td>
+              <td>Streaming (Kafka-like)</td>
+              <td>Prometheus metrics on brokers; lag and backlog per subscription. Same collector → Splunk Observability Cloud hop.</td>
+            </tr>
+            <tr>
+              <td><strong>NATS / JetStream</strong></td>
+              <td>Lightweight messaging</td>
+              <td>Built-in HTTP monitoring / Prometheus endpoint on servers. Smaller metric surface; same scrape → collector idea.</td>
+            </tr>
+            <tr>
+              <td><strong>Redis Streams</strong></td>
+              <td>In-memory streams</td>
+              <td>Redis exporter (Prometheus) for memory, connections, stream length — <em>similar scrape path</em>, not a full enterprise MQ.</td>
+            </tr>
+            <tr>
+              <td><strong>Amazon SQS / SNS</strong></td>
+              <td>Cloud-managed queues</td>
+              <td><em>Different source:</em> CloudWatch metrics (ApproximateNumberOfMessagesVisible, age of oldest message) → often CloudWatch receiver or Splunk Observability Cloud AWS integration — not a containerized <code>mq_otel</code>.</td>
+            </tr>
+            <tr>
+              <td><strong>Azure Service Bus</strong></td>
+              <td>Cloud-managed</td>
+              <td>Azure Monitor metrics (active messages, dead-letter counts) — platform metrics, same Splunk Observability Cloud destination, different ingest path.</td>
+            </tr>
+            <tr>
+              <td><strong>Google Cloud Pub/Sub</strong></td>
+              <td>Cloud-managed</td>
+              <td>Stackdriver/Cloud Monitoring (backlog, oldest unacked age) — again cloud-provider metrics, not an in-lab sidecar exporter.</td>
+            </tr>
+            <tr>
+              <td><strong>Amazon MQ</strong> (managed)</td>
+              <td>Managed IBM MQ or RabbitMQ</td>
+              <td>Same as above depending on engine: IBM MQ → CloudWatch + possibly still <code>mq_otel</code> against the broker; Rabbit engine → Rabbit Prometheus pattern.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          <p class="callout__title">Facilitator shorthand</p>
+          <p><strong>Same for almost any broker:</strong> broker metrics exporter or scrape target → OpenTelemetry Collector (normalize &amp; tag) → Splunk Observability Cloud; apps send OTLP for traces/logs.</p>
+          <p><strong>Not the same:</strong> which exporter you run, metric names, topology (queue vs topic vs subscription), and whether metrics are OTLP push (IBM <code>mq_otel</code>) vs Prometheus pull (RabbitMQ, Kafka, many others) vs cloud API (SQS, Service Bus, Pub/Sub).</p>
+          <p>If your team standardizes on Splunk Observability Cloud + OTel, swapping IBM MQ for RabbitMQ or Kafka is mostly a <strong>collector receiver/exporter change</strong> and a <strong>dashboard/detector retune</strong> — not a redesign of the whole observability stack.</p>
+        </div>
+      </section>
+
       <section id="wrapup">
         <h2>Teardown</h2>
         <div class="code-block">
@@ -777,7 +899,7 @@ docker compose up -d order-producer order-consumer</code></pre></div>
           <pre><code id="cmd-down2">cd ~/projects/ibm-mq-o11y-lab
 docker compose down -v</code></pre>
         </div>
-        <p>Recap: <code>mq_otel</code> exposes IBM MQ metrics; Splunk Metrics shows queue depth and related signals for operations and alerting.</p>
+        <p>Recap: <code>mq_otel</code> exposes IBM MQ metrics; Splunk Observability Cloud Metrics shows queue depth and related signals for operations and alerting.</p>
       </section>
     </main>
   </div>
