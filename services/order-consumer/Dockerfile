@@ -12,7 +12,12 @@ RUN npm run build -w @mq-lab/order-consumer
 
 FROM node:20-bookworm
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends wget && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends wget curl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+COPY docker/install-mq-client.sh /tmp/install-mq-client.sh
+RUN chmod 755 /tmp/install-mq-client.sh && /tmp/install-mq-client.sh && rm /tmp/install-mq-client.sh
+ENV LD_LIBRARY_PATH=/opt/mqm/lib64
+ENV MQ_INSTALLATION_PATH=/opt/mqm
 RUN addgroup --gid 1001 nodejs && adduser --uid 1001 --gid 1001 --disabled-password nodejs
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist

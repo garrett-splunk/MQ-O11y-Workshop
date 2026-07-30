@@ -82,6 +82,7 @@ services:
     restart: unless-stopped
 
   order-producer:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: services/order-producer/Dockerfile
@@ -99,6 +100,7 @@ services:
       - "8080:8080"
 
   order-consumer:
+    platform: linux/amd64
     build:
       context: .
       dockerfile: services/order-consumer/Dockerfile

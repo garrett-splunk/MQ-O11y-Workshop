@@ -17,7 +17,7 @@ connection:
   user: app
   passwordFile: /run/secrets/mqAppPassword
   replyQueue: SYSTEM.DEFAULT.MODEL.QUEUE
-  waitInterval: 5
+  waitInterval: 30
 
 objects:
   queues:
