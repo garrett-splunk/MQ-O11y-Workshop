@@ -36,12 +36,13 @@
         <li><a href="#prereqs" class="sidebar-tree__link" data-step="1"><span class="sidebar-tree__num">1</span> Prerequisites</a></li>
         <li><a href="#step-splunk-token" class="sidebar-tree__link" data-step="2"><span class="sidebar-tree__num">2</span> Splunk token</a></li>
         <li><a href="#step-secrets" class="sidebar-tree__link" data-step="3"><span class="sidebar-tree__num">3</span> Lab secrets</a></li>
-        <li><a href="#step-start" class="sidebar-tree__link" data-step="4"><span class="sidebar-tree__num">4</span> Start stack</a></li>
-        <li><a href="#step-verify" class="sidebar-tree__link" data-step="5"><span class="sidebar-tree__num">5</span> Verify stack</a></li>
-        <li><a href="#step-topology" class="sidebar-tree__link" data-step="6"><span class="sidebar-tree__num">6</span> MQ topology</a></li>
-        <li><a href="#step-traffic" class="sidebar-tree__link" data-step="7"><span class="sidebar-tree__num">7</span> Generate traffic</a></li>
-        <li><a href="#step-metrics" class="sidebar-tree__link" data-step="8"><span class="sidebar-tree__num">8</span> MQ metrics in Splunk</a></li>
-        <li><a href="#step-failure" class="sidebar-tree__link" data-step="9"><span class="sidebar-tree__num">9</span> Depth failure demo</a></li>
+        <li><a href="#step-collector" class="sidebar-tree__link" data-step="4"><span class="sidebar-tree__num">4</span> OTel collector</a></li>
+        <li><a href="#step-start" class="sidebar-tree__link" data-step="5"><span class="sidebar-tree__num">5</span> Start stack</a></li>
+        <li><a href="#step-verify" class="sidebar-tree__link" data-step="6"><span class="sidebar-tree__num">6</span> Verify stack</a></li>
+        <li><a href="#step-topology" class="sidebar-tree__link" data-step="7"><span class="sidebar-tree__num">7</span> MQ topology</a></li>
+        <li><a href="#step-traffic" class="sidebar-tree__link" data-step="8"><span class="sidebar-tree__num">8</span> Generate traffic</a></li>
+        <li><a href="#step-metrics" class="sidebar-tree__link" data-step="9"><span class="sidebar-tree__num">9</span> MQ metrics in Splunk</a></li>
+        <li><a href="#step-failure" class="sidebar-tree__link" data-step="10"><span class="sidebar-tree__num">10</span> Depth failure demo</a></li>
         <li><a href="#troubleshoot" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">?</span> Troubleshooting</a></li>
         <li><a href="#wrapup" class="sidebar-tree__link" data-step="0"><span class="sidebar-tree__num">—</span> Teardown</a></li>
       </ul>
@@ -241,8 +242,87 @@ cp secrets/mqAppPassword.example.txt secrets/mqAppPassword.txt</code></pre>
         <p>Default demo password is in <code>.env.example</code> (<code>MQ_APP_PASSWORD</code>). The file <code>secrets/mqAppPassword.txt</code> must match that value for <code>mq-otel-exporter</code>.</p>
       </section>
 
+      <section id="step-collector">
+        <div class="step-meta"><span class="step-badge">Step 4</span><span class="step-time">~5 min · read-only</span></div>
+        <h2>OpenTelemetry Collector → Splunk O11y</h2>
+        <p>You do <strong>not</strong> install the collector manually in this lab — <code>docker compose up</code> (Step 5) starts it for you. This step shows <em>what</em> gets deployed and <em>which files</em> define the Splunk export path for IBM MQ metrics.</p>
+
+        <div class="callout callout--info">
+          <p class="callout__title">Splunk Distribution vs this lab</p>
+          <p>For production, Splunk publishes the <strong>Splunk Distribution of the OpenTelemetry Collector</strong> as <code>quay.io/signalfx/splunk-otel-collector</code> (see <a href="https://help.splunk.com/en/splunk-observability-cloud/manage-data/splunk-distribution-of-the-opentelemetry-collector/get-started-with-the-splunk-distribution-of-the-opentelemetry-collector/collector-for-linux/install-the-collector-for-linux-manual" target="_blank" rel="noopener">Splunk collector install docs</a>). This lab uses the upstream <code>opentelemetry-collector-contrib</code> image with the built-in <code>signalfx</code> exporter — the same ingest token and realm from <code>.env.splunk</code> — so learners focus on MQ metrics, not collector packaging.</p>
+        </div>
+
+        <h3>4a — How Compose runs the collector</h3>
+        <p>From <code>docker-compose.yml</code> in the repo root. The service mounts the YAML config, loads your Splunk token from <code>.env.splunk</code>, and exposes OTLP ports for <code>mq_otel</code> and the sample apps.</p>
+        <div class="code-block">
+          <div class="code-block__header"><span>docker-compose.yml</span><button class="btn-copy" data-copy="snippet-compose-collector">Copy</button></div>
+          <pre><code id="snippet-compose-collector">otel-collector:
+  image: otel/opentelemetry-collector-contrib:0.111.0
+  command: ["--config=/etc/otelcol/config.yaml"]
+  volumes:
+    - ./collector/otelcol-config.yaml:/etc/otelcol/config.yaml:ro
+  env_file:
+    - path: .env.splunk
+      required: false
+  environment:
+    DEPLOYMENT_ENVIRONMENT: ${DEPLOYMENT_ENVIRONMENT:-ibm-mq-lab}
+  ports:
+    - "4317:4317"   # OTLP gRPC — mq_otel exporter
+    - "4318:4318"   # OTLP HTTP — order-producer / order-consumer
+    - "13133:13133" # collector health (verify-stack.sh)</code></pre>
+        </div>
+        <p class="muted">Production alternative (not used in this lab): <code>quay.io/signalfx/splunk-otel-collector:&lt;version&gt;</code> — pin a semver tag from <a href="https://github.com/signalfx/splunk-otel-collector/releases" target="_blank" rel="noopener">Splunk OTel Collector releases</a>.</p>
+
+        <h3>4b — Metrics pipeline config (Splunk export)</h3>
+        <p>From <code>collector/otelcol-config.yaml</code>. <code>mq_otel</code> sends OTLP metrics to port <code>4317</code>; the collector adds the lab environment dimension and forwards metrics to Splunk via the <code>signalfx</code> exporter using <code>SPLUNK_ACCESS_TOKEN</code> and realm URLs from Step 2.</p>
+        <div class="code-block">
+          <div class="code-block__header"><span>collector/otelcol-config.yaml</span><button class="btn-copy" data-copy="snippet-collector-yaml">Copy</button></div>
+          <pre><code id="snippet-collector-yaml">receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 5s
+  resource/add_environment:
+    attributes:
+      - key: deployment.environment
+        value: ${DEPLOYMENT_ENVIRONMENT}
+        action: upsert
+      - key: deployment.environment.name
+        value: ${DEPLOYMENT_ENVIRONMENT}
+        action: upsert
+
+exporters:
+  signalfx:
+    access_token: ${SPLUNK_ACCESS_TOKEN}
+    realm: ${SPLUNK_REALM}
+    ingest_url: ${SPLUNK_INGEST_URL}
+    api_url: ${SPLUNK_API_URL}
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, resource/add_environment, batch]
+      exporters: [signalfx]</code></pre>
+        </div>
+        <p class="muted">The full file in the repo also defines trace and log pipelines; this metrics track uses the <strong>metrics</strong> pipeline above. Open the complete file locally if you want to see health checks and debug exporters.</p>
+
+        <h3>4c — Data flow recap</h3>
+        <ol>
+          <li><code>mq-otel-exporter</code> → OTLP gRPC → <code>otel-collector:4317</code></li>
+          <li>Collector <code>signalfx</code> exporter → Splunk ingest URL from <code>.env.splunk</code></li>
+          <li>Chart metrics in Splunk O11y (Step 9) with filter <code>deployment.environment:ibm-mq-lab</code></li>
+        </ol>
+      </section>
+
       <section id="step-start">
-        <div class="step-meta"><span class="step-badge">Step 4</span><span class="step-time">~15 min</span></div>
+        <div class="step-meta"><span class="step-badge">Step 5</span><span class="step-time">~15 min</span></div>
         <h2>Start the Docker stack</h2>
         <p>First run builds IBM MQ, Node services, and the <code>mq_otel</code> image. Allow several minutes.</p>
         <div class="code-block">
@@ -279,7 +359,7 @@ docker compose up --build -d</code></pre>
       </section>
 
       <section id="step-verify">
-        <div class="step-meta"><span class="step-badge">Step 5</span><span class="step-time">~10 min</span></div>
+        <div class="step-meta"><span class="step-badge">Step 6</span><span class="step-time">~10 min</span></div>
         <h2>Verify the lab (<code>scripts/verify-stack.sh</code>)</h2>
         <p>Run the script from the repo root. It performs the same checks below; use this section to understand each line.</p>
         <div class="code-block">
@@ -341,7 +421,7 @@ curl -sf -X POST http://localhost:8080/orders \
       </section>
 
       <section id="step-topology">
-        <div class="step-meta"><span class="step-badge">Step 6</span><span class="step-time">~5 min</span></div>
+        <div class="step-meta"><span class="step-badge">Step 7</span><span class="step-time">~5 min</span></div>
         <h2>MQ topology (what <code>mq_otel</code> monitors)</h2>
         <table class="info-table">
           <tr><th>Queue manager</th><td><code>QM1</code></td></tr>
@@ -353,7 +433,7 @@ curl -sf -X POST http://localhost:8080/orders \
       </section>
 
       <section id="step-traffic">
-        <div class="step-meta"><span class="step-badge">Step 7</span><span class="step-time">~10 min</span></div>
+        <div class="step-meta"><span class="step-badge">Step 8</span><span class="step-time">~10 min</span></div>
         <h2>Generate traffic (so metrics move)</h2>
         <p>Queue depth and message counters change when messages flow. Use one order or sustained load.</p>
         <h3>Single order</h3>
@@ -375,11 +455,11 @@ npm run load-traffic -- 30 400</code></pre>
       </section>
 
       <section id="step-metrics">
-        <div class="step-meta"><span class="step-badge">Step 8</span><span class="step-time">~15 min</span></div>
+        <div class="step-meta"><span class="step-badge">Step 9</span><span class="step-time">~15 min</span></div>
         <h2>View IBM MQ metrics in Splunk</h2>
-        <p>After Step 7, allow 1–2 minutes for ingest. All series from this lab use the <code>ibmmq</code> prefix (see <code>metaprefix</code> in <code>mq-otel-exporter/mq_otel.yaml</code>) and are tagged with <code>deployment.environment:ibm-mq-lab</code>.</p>
+        <p>After Step 8, allow 1–2 minutes for ingest. All series from this lab use the <code>ibmmq</code> prefix (see <code>metaprefix</code> in <code>mq-otel-exporter/mq_otel.yaml</code>) and are tagged with <code>deployment.environment:ibm-mq-lab</code>.</p>
 
-        <h3>8a — Find metrics in the Splunk O11y UI</h3>
+        <h3>9a — Find metrics in the Splunk O11y UI</h3>
         <p>Use any of these paths (wording may vary slightly by UI version):</p>
 
         <h4>Option 1 — Metadata Catalog (best for discovery)</h4>
@@ -414,7 +494,7 @@ npm run load-traffic -- 30 400</code></pre>
           <p>The exporter emits OpenTelemetry names such as <code>ibmmq.queue.depth</code> (object type in the middle: <code>queue</code>, <code>channel</code>, <code>qmgr</code>, …). Splunk may display dots or underscores — search for <code>ibmmq</code> and use the Metadata Catalog rather than guessing the exact string.</p>
         </div>
 
-        <h3>8b — Metrics you get out of the box in this lab</h3>
+        <h3>9b — Metrics you get out of the box in this lab</h3>
         <p>The lab’s <code>mq_otel</code> config enables <strong>object status</strong> and <strong>$SYS publications</strong>, and monitors these objects:</p>
         <ul>
           <li>Queues: <code>ORDER.*</code>, <code>DEV.QUEUE.*</code> (not <code>SYSTEM.*</code> / <code>AMQ.*</code>)</li>
@@ -427,7 +507,7 @@ npm run load-traffic -- 30 400</code></pre>
             <tr>
               <td><strong>Queue status</strong></td>
               <td>Depth and related queue attributes on <code>ORDER.REQ</code>, <code>ORDER.RESP</code>, and matched DEV queues (gauges).</td>
-              <td>Step 7 traffic and Step 9 failure demo — depth rises when the consumer is stopped.</td>
+              <td>Step 8 traffic and Step 10 failure demo — depth rises when the consumer is stopped.</td>
             </tr>
             <tr>
               <td><strong>Queue manager</strong></td>
@@ -458,7 +538,7 @@ npm run load-traffic -- 30 400</code></pre>
           <li><code>ibmmq.channel.status</code> — channel status on monitored channels</li>
         </ul>
 
-        <h3>8c — Official metric reference (for deeper reading)</h3>
+        <h3>9c — Official metric reference (for deeper reading)</h3>
         <ul>
           <li><a href="https://github.com/ibm-messaging/mq-metric-samples/blob/master/metrics.txt" target="_blank" rel="noopener">IBM <code>metrics.txt</code></a> — full catalog of metric classes (queue, channel, qmgr, statistics, publications).</li>
           <li><a href="https://github.com/ibm-messaging/mq-metric-samples/blob/master/cmd/mq_otel/README.md" target="_blank" rel="noopener">IBM <code>mq_otel</code> README</a> — OpenTelemetry naming (<code>ibmmq.&lt;type&gt;.&lt;metric&gt;</code>), counters vs gauges, OTLP setup.</li>
@@ -466,9 +546,9 @@ npm run load-traffic -- 30 400</code></pre>
           <li><a href="https://github.com/ibm-messaging/mq-metric-samples" target="_blank" rel="noopener">ibm-messaging/mq-metric-samples</a> — source repo for <code>mq_otel</code> (same metrics as other collectors in that project).</li>
         </ul>
 
-        <h3>8d — Chart queue depth for this lab</h3>
+        <h3>9d — Chart queue depth for this lab</h3>
         <ol>
-          <li>Run sustained load (Step 7) or the Step 9 failure demo so depth moves.</li>
+          <li>Run sustained load (Step 8) or the Step 10 failure demo so depth moves.</li>
           <li>In Metadata Catalog or Chart Builder, locate an <code>ibmmq</code> queue depth metric.</li>
           <li>Filter <code>deployment.environment:ibm-mq-lab</code>.</li>
           <li>Filter or group by queue name <code>ORDER.REQ</code>.</li>
@@ -486,7 +566,7 @@ npm run load-traffic -- 30 400</code></pre>
       </section>
 
       <section id="step-failure">
-        <div class="step-meta"><span class="step-badge">Step 9</span><span class="step-time">~10 min</span></div>
+        <div class="step-meta"><span class="step-badge">Step 10</span><span class="step-time">~10 min</span></div>
         <h2>Failure demo — queue depth (metrics only)</h2>
         <p>Stop the consumer so messages accumulate on <code>ORDER.REQ</code>; watch depth rise in Splunk Metrics.</p>
         <ol>
@@ -498,7 +578,7 @@ npm run load-traffic -- 30 400</code></pre>
             <strong>Send load</strong>
             <div class="code-block"><pre><code>npm run load-traffic -- 25 200</code></pre></div>
           </li>
-          <li><strong>In Splunk O11y</strong> — follow Step 8: Metadata Catalog or Chart Builder, filter <code>deployment.environment:ibm-mq-lab</code>, chart <code>ORDER.REQ</code> depth.</li>
+          <li><strong>In Splunk O11y</strong> — follow Step 9: Metadata Catalog or Chart Builder, filter <code>deployment.environment:ibm-mq-lab</code>, chart <code>ORDER.REQ</code> depth.</li>
           <li>
             <strong>Restore processing</strong>
             <div class="code-block"><pre><code>docker compose start order-consumer</code></pre></div>
@@ -539,7 +619,7 @@ docker compose up -d order-producer order-consumer</code></pre></div>
           </details>
           <details>
             <summary>Flat queue depth chart</summary>
-            <p>Run <code>npm run load-traffic</code> with consumer <strong>stopped</strong> (Step 9), or confirm producer returns <code>202 accepted</code>.</p>
+            <p>Run <code>npm run load-traffic</code> with consumer <strong>stopped</strong> (Step 10), or confirm producer returns <code>202 accepted</code>.</p>
           </details>
           <details>
             <summary>Wrong Splunk org / realm</summary>
