@@ -1,33 +1,27 @@
 global:
   useObjectStatus: true
   useResetQStats: false
-  usePublications: true
+  usePublications: false
   useStatistics: false
   logLevel: INFO
-  metaprefix: ibmmq
+  # Leave metaprefix empty when usePublications is false — a non-empty value
+  # still runs publication metadata discovery and mq_otel fatals after 30s (2033).
+  metaprefix: ""
   pollInterval: 15s
   rediscoverInterval: 1h
   tzOffset: 0h
 
 connection:
   queueManager: QM1
-  connName: mq(1414)
-  channel: DEV.APP.SVRCONN
-  clientConnection: true
-  user: app
-  passwordFile: /run/secrets/mqAppPassword
-  replyQueue: SYSTEM.DEFAULT.MODEL.QUEUE
-  waitInterval: 30
+  clientConnection: false
+  replyQueue: MQOTEL.REPLY
+  replyQueue2: MQOTEL.REPLY2
+  waitInterval: 120
 
 objects:
   queues:
-    - DEV.QUEUE.*
-    - ORDER.*
-    - "!SYSTEM.*"
-    - "!AMQ.*"
-  channels:
-    - DEV.*
-    - ORDERS.*
+    - ORDER.REQ
+    - ORDER.RESP
 
 filters:
   hideSvrConnJobname: false
@@ -42,4 +36,4 @@ otel:
   insecure: true
   logLevel: INFO
   interval: 15s
-  maxErrors: 10
+  maxErrors: 100

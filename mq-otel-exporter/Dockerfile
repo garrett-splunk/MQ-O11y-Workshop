@@ -38,6 +38,8 @@ RUN git clone --depth 1 --branch "${METRIC_SAMPLES_REF}" \
     "https://github.com/ibm-messaging/mq-metric-samples.git" \
     "/go/src/${ORG}/${REPO}"
 
+ARG TARGETARCH=amd64
+ARG TARGETOS=linux
 ARG TARGETARCH TARGETOS
 ARG RDURL_ARG="https://public.dhe.ibm.com/ibmdl/export/pub/software/websphere/messaging/mqdev/redist"
 RUN T="$TARGETOS/$TARGETARCH"; \
@@ -47,7 +49,12 @@ RUN T="$TARGETOS/$TARGETARCH"; \
         RDURL=${RDURL_ARG}; \
         RDTAR="IBM-MQC-Redist-Linux${MQARCH}.tar.gz"; \
         cd /opt/mqm \
-        && curl -fsSL "$RDURL/$VRMF-$RDTAR" -o mqclient.tar.gz \
+        && for attempt in 1 2 3 4 5; do \
+             curl -fsSL "$RDURL/$VRMF-$RDTAR" -o mqclient.tar.gz && break; \
+             echo "MQ client download attempt $attempt failed; retrying..." >&2; \
+             sleep 5; \
+           done \
+        && test -s mqclient.tar.gz \
         && tar -zxf mqclient.tar.gz \
         && rm -f mqclient.tar.gz \
         && bin/genmqpkg.sh -b /opt/mqm; \
@@ -59,7 +66,27 @@ RUN T="$TARGETOS/$TARGETARCH"; \
       fi
 
 WORKDIR /go/src/${ORG}/${REPO}
+RUN sed -i \
+    's/gmo.WaitInterval = 30 \* 1000/gmo.WaitInterval = int32(ci.waitInterval) * 1000/g' \
+    vendor/github.com/ibm-messaging/mq-golang/v5/mqmetric/discover.go \
+ && sed -i \
+    's/gmo.WaitInterval = 30 \* 1000/gmo.WaitInterval = int32(getConnection(GetConnectionKey()).waitInterval) * 1000/' \
+    vendor/github.com/ibm-messaging/mq-golang/v5/mqmetric/mqif.go \
+ && sed -i \
+    's/discoverConfig.MonitoredQueues.UseWildcard = true/discoverConfig.MonitoredQueues.UseWildcard = false/' \
+    cmd/mq_otel/main.go \
+ && sed -i \
+    '/RediscoverAttributes(ibmmq.MQOT_CHANNEL/s/^[[:space:]]*/\/\/ /' \
+    cmd/mq_otel/main.go \
+ && sed -i \
+    '/RediscoverAttributes(mqmetric.OT_CHANNEL_AMQP/s/^[[:space:]]*/\/\/ /' \
+    cmd/mq_otel/main.go \
+ && grep -n 'UseWildcard = false' cmd/mq_otel/main.go \
+ && grep -q 'ci.waitInterval' vendor/github.com/ibm-messaging/mq-golang/v5/mqmetric/discover.go \
+ && grep -q 'getConnection(GetConnectionKey()).waitInterval' vendor/github.com/ibm-messaging/mq-golang/v5/mqmetric/mqif.go \
+ && grep -c '^[[:space:]]*//.*RediscoverAttributes' cmd/mq_otel/main.go | grep -q '^2$'
 RUN cp "cmd/${EXPORTER}"/*.go . \
+    && grep -n 'UseWildcard = false' main.go \
     && buildStamp=`date +%Y%m%d-%H%M%S`; \
     hw=`uname -m`; os=`uname -s`; bp="$os/$hw"; \
     gitCommit=`git rev-parse --short HEAD 2>/dev/null || echo Unknown`; \

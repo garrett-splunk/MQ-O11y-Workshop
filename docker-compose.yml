@@ -3,7 +3,7 @@ x-otel-environment: &otel-environment
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
   DEPLOYMENT_ENVIRONMENT: ${DEPLOYMENT_ENVIRONMENT:-ibm-mq-lab}
   OTEL_RESOURCE_ATTRIBUTES: deployment.environment.name=${DEPLOYMENT_ENVIRONMENT:-ibm-mq-lab},deployment.environment=${DEPLOYMENT_ENVIRONMENT:-ibm-mq-lab},service.namespace=ibm-mq-lab,demo.name=ibm-mq-o11y-lab
-  OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-false}
+  OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}
 
 x-mq-environment: &mq-environment
   MQ_QUEUE_MANAGER: ${MQ_QUEUE_MANAGER:-QM1}
@@ -18,7 +18,10 @@ services:
   mq:
     platform: linux/amd64
     build:
-      context: ./mq
+      context: .
+      dockerfile: mq/Dockerfile
+      args:
+        MQOTEL_EXPORTER_IMAGE: ibm-mq-o11y-lab-mq-otel-exporter:latest
     environment:
       LICENSE: accept
       MQ_QMGR_NAME: ${MQ_QUEUE_MANAGER:-QM1}
@@ -69,6 +72,7 @@ services:
 
   mq-otel-exporter:
     platform: linux/amd64
+    profiles: ["legacy-client-exporter"]
     build:
       context: ./mq-otel-exporter
     depends_on:
